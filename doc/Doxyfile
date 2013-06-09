@@ -111,7 +111,9 @@ INPUT                  = ../lib/libalpm/
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          =
 RECURSIVE              = NO
-EXCLUDE                =
+EXCLUDE                = ../lib/libalpm/base64.h \
+                         ../lib/libalpm/md5.h \
+                         ../lib/libalpm/sha2.h
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       =
 EXCLUDE_SYMBOLS        =
