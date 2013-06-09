@@ -1255,9 +1255,15 @@ char *alpm_dep_compute_string(const alpm_depend_t *dep);
  * Helpers
  */
 
+/** @addtogroup libalpm_misc
+ * @{
+ */
+
 /* checksums */
 char *alpm_compute_md5sum(const char *filename);
 char *alpm_compute_sha256sum(const char *filename);
+
+/** @} */
 
 /** @addtogroup libalpm_errors Error Codes
  * @{
@@ -1338,9 +1344,21 @@ const char *alpm_strerror(alpm_errno_t err);
 /* End of alpm_errors */
 /** @} */
 
+/** @addtogroup libalpm_interface Interface Functions
+ * @brief Functions to initialize and release libalpm
+ * @{
+ */
+
 alpm_handle_t *alpm_initialize(const char *root, const char *dbpath,
 		alpm_errno_t *err);
 int alpm_release(alpm_handle_t *handle);
+
+/** @} */
+
+/** @addtogroup libalpm_misc Miscellaneous Functions
+ * @brief Various libalpm functions
+ * @{
+ */
 
 enum alpm_caps {
 	ALPM_CAPABILITY_NLS = (1 << 0),
@@ -1350,6 +1368,8 @@ enum alpm_caps {
 
 const char *alpm_version(void);
 enum alpm_caps alpm_capabilities(void);
+
+/** @} */
 
 /* End of alpm */
 /** @} */

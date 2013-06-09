@@ -256,19 +256,12 @@ static alpm_list_t *find_unused(alpm_list_t *deltas, const char *to, off_t quota
 	return unused;
 }
 
-/** \addtogroup alpm_deltas Delta Functions
- * @brief Functions to manipulate libalpm deltas
- * @{
- */
-
 alpm_list_t SYMEXPORT *alpm_pkg_unused_deltas(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
 	return find_unused(pkg->deltas, pkg->filename,
 			pkg->size * pkg->handle->deltaratio);
 }
-
-/** @} */
 
 #define NUM_MATCHES 6
 

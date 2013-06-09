@@ -32,11 +32,6 @@
 #include "log.h"
 #include "util.h"
 
-/** \addtogroup alpm_interface Interface Functions
- * @brief Functions to initialize and release libalpm
- * @{
- */
-
 /** Initializes the library.
  * Creates handle, connects to database and creates lockfile.
  * This must be called before any other functions are called.
@@ -122,12 +117,6 @@ int SYMEXPORT alpm_release(alpm_handle_t *myhandle)
 
 	return ret;
 }
-
-/** @} */
-
-/** @defgroup alpm_misc Miscellaneous Functions
- * @brief Various libalpm functions
- */
 
 /** Get the version of library.
  * @return the library version, e.g. "6.0.4"

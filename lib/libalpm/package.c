@@ -35,11 +35,6 @@
 #include "handle.h"
 #include "deps.h"
 
-/** \addtogroup alpm_packages Package Functions
- * @brief Functions to manipulate libalpm packages
- * @{
- */
-
 /** Free a package. */
 int SYMEXPORT alpm_pkg_free(alpm_pkg_t *pkg)
 {
@@ -502,9 +497,6 @@ alpm_list_t SYMEXPORT *alpm_pkg_compute_optionalfor(alpm_pkg_t *pkg)
 {
 	return compute_requiredby(pkg, 1);
 }
-
-
-/** @} */
 
 alpm_file_t *_alpm_file_copy(alpm_file_t *dest,
 		const alpm_file_t *src)

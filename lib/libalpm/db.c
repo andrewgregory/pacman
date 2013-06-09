@@ -37,11 +37,6 @@
 #include "package.h"
 #include "group.h"
 
-/** \addtogroup alpm_databases Database Functions
- * @brief Functions to query and manipulate the database of libalpm
- * @{
- */
-
 /** Register a sync database of packages. */
 alpm_db_t SYMEXPORT *alpm_register_syncdb(alpm_handle_t *handle,
 		const char *treename, alpm_siglevel_t level)

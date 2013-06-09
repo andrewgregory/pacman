@@ -31,6 +31,16 @@ extern "C" {
 #endif
 
 /**
+ * @addtogroup alpm_list List Functions
+ * @brief Functions to manipulate alpm_list_t lists.
+ *
+ * These functions are designed to create, destroy, and modify lists of
+ * type alpm_list_t. This is an internal list type used by libalpm that is
+ * publicly exposed for use by frontends if desired.
+ *
+ * @{ */
+
+/**
  * @brief Linked list type used by libalpm.
  *
  * It is exposed so front ends can use it to prevent the need to reimplement
@@ -90,5 +100,8 @@ void *alpm_list_to_array(const alpm_list_t *list, size_t n, size_t size);
 }
 #endif
 #endif /* _ALPM_LIST_H */
+
+
+/** @} */
 
 /* vim: set ts=2 sw=2 noet: */

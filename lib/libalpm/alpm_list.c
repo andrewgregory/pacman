@@ -32,16 +32,6 @@
 #define SYMEXPORT __attribute__((visibility("default")))
 #define SYMHIDDEN __attribute__((visibility("internal")))
 
-/**
- * @addtogroup alpm_list List Functions
- * @brief Functions to manipulate alpm_list_t lists.
- *
- * These functions are designed to create, destroy, and modify lists of
- * type alpm_list_t. This is an internal list type used by libalpm that is
- * publicly exposed for use by frontends if desired.
- *
- * @{ */
-
 /* Allocation */
 
 /**
@@ -787,7 +777,5 @@ void SYMEXPORT *alpm_list_to_array(const alpm_list_t *list, size_t n,
 	}
 	return array;
 }
-
-/** @} */
 
 /* vim: set ts=2 sw=2 noet: */

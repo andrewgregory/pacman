@@ -40,11 +40,6 @@
 #include "sync.h"
 #include "alpm.h"
 
-/** \addtogroup alpm_trans Transaction Functions
- * @brief Functions to manipulate libalpm transactions
- * @{
- */
-
 /** Initialize the transaction. */
 int SYMEXPORT alpm_trans_init(alpm_handle_t *handle, alpm_transflag_t flags)
 {
@@ -226,8 +221,6 @@ int SYMEXPORT alpm_trans_release(alpm_handle_t *handle)
 	return 0;
 }
 
-/** @} */
-
 void _alpm_trans_free(alpm_trans_t *trans)
 {
 	if(trans == NULL) {
@@ -389,4 +382,5 @@ alpm_list_t SYMEXPORT *alpm_trans_get_remove(alpm_handle_t *handle)
 
 	return handle->trans->remove;
 }
+
 /* vim: set ts=2 sw=2 noet: */

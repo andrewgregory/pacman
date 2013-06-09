@@ -28,11 +28,6 @@
 #include "util.h"
 #include "alpm.h"
 
-/** \addtogroup alpm_log Logging Functions
- * @brief Functions to log using libalpm
- * @{
- */
-
 /** A printf-like function for logging.
  * @param handle the context handle
  * @param prefix caller-specific prefix for the log
@@ -69,8 +64,6 @@ int SYMEXPORT alpm_logaction(alpm_handle_t *handle, const char *prefix,
 
 	return ret;
 }
-
-/** @} */
 
 void _alpm_log(alpm_handle_t *handle, alpm_loglevel_t flag, const char *fmt, ...)
 {
