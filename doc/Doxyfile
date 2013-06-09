@@ -116,7 +116,7 @@ EXCLUDE                = ../lib/libalpm/base64.h \
                          ../lib/libalpm/sha2.h
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       =
-EXCLUDE_SYMBOLS        =
+EXCLUDE_SYMBOLS        = _*
 EXAMPLE_PATH           =
 EXAMPLE_PATTERNS       = *
 EXAMPLE_RECURSIVE      = NO
