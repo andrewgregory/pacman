@@ -41,7 +41,7 @@ extern "C" {
  * Arch Linux Package Management library
  */
 
-/** @addtogroup alpm_api Public API
+/** @addtogroup libalpm Public API
  * The libalpm Public API
  * @{
  */
@@ -460,7 +460,7 @@ typedef int (*alpm_cb_fetch)(const char *url, const char *localpath,
  */
 char *alpm_fetch_pkgurl(alpm_handle_t *handle, const char *url);
 
-/** @addtogroup alpm_api_options Options
+/** @addtogroup libalpm_options Options
  * Libalpm option getters and setters
  * @{
  */
@@ -600,7 +600,7 @@ int alpm_option_set_remote_file_siglevel(alpm_handle_t *handle, alpm_siglevel_t 
 
 /** @} */
 
-/** @addtogroup alpm_api_databases Database Functions
+/** @addtogroup libalpm_databases Database Functions
  * Functions to query and manipulate the database of libalpm.
  * @{
  */
@@ -733,7 +733,7 @@ int alpm_db_get_usage(alpm_db_t *db, alpm_db_usage_t *usage);
 
 /** @} */
 
-/** @addtogroup alpm_api_packages Package Functions
+/** @addtogroup libalpm_packages Package Functions
  * Functions to manipulate libalpm packages
  * @{
  */
@@ -1102,7 +1102,7 @@ alpm_list_t *alpm_find_group_pkgs(alpm_list_t *dbs, const char *name);
 
 alpm_pkg_t *alpm_sync_newversion(alpm_pkg_t *pkg, alpm_list_t *dbs_sync);
 
-/** @addtogroup alpm_api_trans Transaction Functions
+/** @addtogroup libalpm_trans Transaction Functions
  * Functions to manipulate libalpm transactions
  * @{
  */
@@ -1227,7 +1227,7 @@ int alpm_remove_pkg(alpm_handle_t *handle, alpm_pkg_t *pkg);
 
 /** @} */
 
-/** @addtogroup alpm_api_depends Dependency Functions
+/** @addtogroup libalpm_depends Dependency Functions
  * Functions dealing with libalpm representation of dependency
  * information.
  * @{
@@ -1259,7 +1259,7 @@ char *alpm_dep_compute_string(const alpm_depend_t *dep);
 char *alpm_compute_md5sum(const char *filename);
 char *alpm_compute_sha256sum(const char *filename);
 
-/** @addtogroup alpm_api_errors Error Codes
+/** @addtogroup libalpm_errors Error Codes
  * @{
  */
 typedef enum _alpm_errno_t {
@@ -1335,7 +1335,7 @@ alpm_errno_t alpm_errno(alpm_handle_t *handle);
 /** Returns the string corresponding to an error number. */
 const char *alpm_strerror(alpm_errno_t err);
 
-/* End of alpm_api_errors */
+/* End of alpm_errors */
 /** @} */
 
 alpm_handle_t *alpm_initialize(const char *root, const char *dbpath,
@@ -1351,7 +1351,7 @@ enum alpm_caps {
 const char *alpm_version(void);
 enum alpm_caps alpm_capabilities(void);
 
-/* End of alpm_api */
+/* End of alpm */
 /** @} */
 
 #ifdef __cplusplus
