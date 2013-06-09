@@ -30,9 +30,9 @@ typedef struct __alpm_graph_t {
 	struct __alpm_graph_t *parent; /* where did we come from? */
 	alpm_list_t *children;
 	alpm_list_t *childptr; /* points to a child in children list */
-} alpm_graph_t;
+} _alpm_graph_t;
 
-alpm_graph_t *_alpm_graph_new(void);
+_alpm_graph_t *_alpm_graph_new(void);
 void _alpm_graph_free(void *data);
 
 #endif /* _ALPM_GRAPH_H */

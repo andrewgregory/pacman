@@ -23,7 +23,7 @@
 #include "alpm_list.h"
 #include "alpm.h"
 
-struct dload_payload {
+struct _alpm_dload_payload_t {
 	alpm_handle_t *handle;
 	const char *tempfile_openmode;
 	char *remote_name;
@@ -46,9 +46,9 @@ struct dload_payload {
 	long respcode;
 };
 
-void _alpm_dload_payload_reset(struct dload_payload *payload);
+void _alpm_dload_payload_reset(struct _alpm_dload_payload_t *payload);
 
-int _alpm_download(struct dload_payload *payload, const char *localpath,
+int _alpm_download(struct _alpm_dload_payload_t *payload, const char *localpath,
 		char **final_file, char **final_url);
 
 #endif /* _ALPM_DLOAD_H */

@@ -92,7 +92,7 @@ void _alpm_alloc_fail(size_t size);
 /**
  * Used as a buffer/state holder for _alpm_archive_fgets().
  */
-struct archive_read_buffer {
+struct _alpm_archive_read_buffer_t {
 	char *line;
 	char *line_offset;
 	size_t line_size;
@@ -130,7 +130,7 @@ char *_alpm_filecache_find(alpm_handle_t *handle, const char *filename);
 const char *_alpm_filecache_setup(alpm_handle_t *handle);
 int _alpm_lstat(const char *path, struct stat *buf);
 int _alpm_test_checksum(const char *filepath, const char *expected, alpm_pkgvalidation_t type);
-int _alpm_archive_fgets(struct archive *a, struct archive_read_buffer *b);
+int _alpm_archive_fgets(struct archive *a, struct _alpm_archive_read_buffer_t *b);
 int _alpm_splitname(const char *target, char **name, char **version,
 		unsigned long *name_hash);
 unsigned long _alpm_hash_sdbm(const char *str);

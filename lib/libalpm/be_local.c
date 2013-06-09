@@ -293,7 +293,7 @@ static int _cache_force_load(alpm_pkg_t *pkg)
  * lazy accessor methods that handle any backend loading and caching
  * logic.
  */
-static struct pkg_operations local_pkg_ops = {
+static struct _alpm_pkg_operations_t local_pkg_ops = {
 	.get_desc        = _cache_get_desc,
 	.get_url         = _cache_get_url,
 	.get_builddate   = _cache_get_builddate,
@@ -1072,7 +1072,7 @@ int SYMEXPORT alpm_pkg_set_reason(alpm_pkg_t *pkg, alpm_pkgreason_t reason)
 	return 0;
 }
 
-struct db_operations local_db_ops = {
+struct _alpm_db_operations_t local_db_ops = {
 	.validate         = local_db_validate,
 	.populate         = local_db_populate,
 	.unregister       = _alpm_db_unregister,

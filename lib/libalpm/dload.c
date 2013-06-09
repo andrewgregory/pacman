@@ -93,7 +93,7 @@ static void inthandler(int UNUSED signum)
 static int dload_progress_cb(void *file, double dltotal, double dlnow,
 		double UNUSED ultotal, double UNUSED ulnow)
 {
-	struct dload_payload *payload = (struct dload_payload *)file;
+	struct _alpm_dload_payload_t *payload = (struct _alpm_dload_payload_t *)file;
 	off_t current_size, total_size;
 
 	/* avoid displaying progress bar for redirects with a body */
@@ -203,7 +203,7 @@ static size_t dload_parseheader_cb(void *ptr, size_t size, size_t nmemb, void *u
 	const char *fptr, *endptr = NULL;
 	const char * const cd_header = "Content-Disposition:";
 	const char * const fn_key = "filename=";
-	struct dload_payload *payload = (struct dload_payload *)user;
+	struct _alpm_dload_payload_t *payload = (struct _alpm_dload_payload_t *)user;
 	long respcode;
 
 	if(_alpm_raw_ncmp(cd_header, ptr, strlen(cd_header)) == 0) {
@@ -275,7 +275,7 @@ static int dload_sockopt_cb(void *userdata, curl_socket_t curlfd,
 	return 0;
 }
 
-static void curl_set_handle_opts(struct dload_payload *payload,
+static void curl_set_handle_opts(struct _alpm_dload_payload_t *payload,
 		CURL *curl, char *error_buffer)
 {
 	alpm_handle_t *handle = payload->handle;
@@ -351,7 +351,7 @@ static void unmask_signal(int signum, struct sigaction *sa)
 	sigaction(signum, sa, NULL);
 }
 
-static FILE *create_tempfile(struct dload_payload *payload, const char *localpath)
+static FILE *create_tempfile(struct _alpm_dload_payload_t *payload, const char *localpath)
 {
 	int fd;
 	FILE *fp;
@@ -385,7 +385,7 @@ static FILE *create_tempfile(struct dload_payload *payload, const char *localpat
 /* RFC1123 states applications should support this length */
 #define HOSTNAME_SIZE 256
 
-static int curl_download_internal(struct dload_payload *payload,
+static int curl_download_internal(struct _alpm_dload_payload_t *payload,
 		const char *localpath, char **final_file, char **final_url)
 {
 	int ret = -1;
@@ -618,7 +618,7 @@ cleanup:
  * @param final_file the real name of the downloaded file (may be NULL)
  * @return 0 on success, -1 on error (pm_errno is set accordingly if errors_ok == 0)
  */
-int _alpm_download(struct dload_payload *payload, const char *localpath,
+int _alpm_download(struct _alpm_dload_payload_t *payload, const char *localpath,
 		char **final_file, char **final_url)
 {
 	alpm_handle_t *handle = payload->handle;
@@ -663,7 +663,7 @@ char SYMEXPORT *alpm_fetch_pkgurl(alpm_handle_t *handle, const char *url)
 	char *filepath;
 	const char *cachedir;
 	char *final_file = NULL, *final_pkg_url = NULL;
-	struct dload_payload payload;
+	struct _alpm_dload_payload_t payload;
 	int ret = 0;
 
 	CHECK_HANDLE(handle, return NULL);
@@ -672,7 +672,7 @@ char SYMEXPORT *alpm_fetch_pkgurl(alpm_handle_t *handle, const char *url)
 	/* find a valid cache dir to download to */
 	cachedir = _alpm_filecache_setup(handle);
 
-	memset(&payload, 0, sizeof(struct dload_payload));
+	memset(&payload, 0, sizeof(struct _alpm_dload_payload_t));
 
 	/* attempt to find the file in our pkgcache */
 	filepath = filecache_find_url(handle, url);
@@ -737,7 +737,7 @@ char SYMEXPORT *alpm_fetch_pkgurl(alpm_handle_t *handle, const char *url)
 	return filepath;
 }
 
-void _alpm_dload_payload_reset(struct dload_payload *payload)
+void _alpm_dload_payload_reset(struct _alpm_dload_payload_t *payload)
 {
 	ASSERT(payload, return);
 

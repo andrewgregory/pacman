@@ -38,7 +38,7 @@ static alpm_list_t *graph_init(alpm_list_t *deltas, int reverse)
 	alpm_list_t *vertices = NULL;
 	/* create the vertices */
 	for(i = deltas; i; i = i->next) {
-		alpm_graph_t *v = _alpm_graph_new();
+		_alpm_graph_t *v = _alpm_graph_new();
 		if(!v) {
 			alpm_list_free(vertices);
 			return NULL;
@@ -52,11 +52,11 @@ static alpm_list_t *graph_init(alpm_list_t *deltas, int reverse)
 
 	/* compute the edges */
 	for(i = vertices; i; i = i->next) {
-		alpm_graph_t *v_i = i->data;
+		_alpm_graph_t *v_i = i->data;
 		alpm_delta_t *d_i = v_i->data;
 		/* loop a second time so we make all possible comparisons */
 		for(j = vertices; j; j = j->next) {
-			alpm_graph_t *v_j = j->data;
+			_alpm_graph_t *v_j = j->data;
 			alpm_delta_t *d_j = v_j->data;
 			/* We want to create a delta tree like the following:
 			 *          1_to_2
@@ -82,7 +82,7 @@ static void graph_init_size(alpm_handle_t *handle, alpm_list_t *vertices)
 
 	for(i = vertices; i; i = i->next) {
 		char *fpath, *md5sum;
-		alpm_graph_t *v = i->data;
+		_alpm_graph_t *v = i->data;
 		alpm_delta_t *vdelta = v->data;
 
 		/* determine whether the delta file already exists */
@@ -123,12 +123,12 @@ static void graph_init_size(alpm_handle_t *handle, alpm_list_t *vertices)
 static void dijkstra(alpm_list_t *vertices)
 {
 	alpm_list_t *i;
-	alpm_graph_t *v;
+	_alpm_graph_t *v;
 	while(1) {
 		v = NULL;
 		/* find the smallest vertice not visited yet */
 		for(i = vertices; i; i = i->next) {
-			alpm_graph_t *v_i = i->data;
+			_alpm_graph_t *v_i = i->data;
 
 			if(v_i->state == -1) {
 				continue;
@@ -146,7 +146,7 @@ static void dijkstra(alpm_list_t *vertices)
 
 		v->childptr = v->children;
 		while(v->childptr) {
-			alpm_graph_t *v_c = v->childptr->data;
+			_alpm_graph_t *v_c = v->childptr->data;
 			alpm_delta_t *d_c = v_c->data;
 			if(v_c->weight > v->weight + d_c->download_size) {
 				v_c->weight = v->weight + d_c->download_size;
@@ -162,12 +162,12 @@ static void dijkstra(alpm_list_t *vertices)
 static off_t shortest_path(alpm_list_t *vertices, const char *to, alpm_list_t **path)
 {
 	alpm_list_t *i;
-	alpm_graph_t *v = NULL;
+	_alpm_graph_t *v = NULL;
 	off_t bestsize = 0;
 	alpm_list_t *rpath = NULL;
 
 	for(i = vertices; i; i = i->next) {
-		alpm_graph_t *v_i = i->data;
+		_alpm_graph_t *v_i = i->data;
 		alpm_delta_t *d_i = v_i->data;
 
 		if(strcmp(d_i->to, to) == 0) {
@@ -236,7 +236,7 @@ static alpm_list_t *find_unused(alpm_list_t *deltas, const char *to, off_t quota
 	vertices = graph_init(deltas, 1);
 
 	for(i = vertices; i; i = i->next) {
-		alpm_graph_t *v = i->data;
+		_alpm_graph_t *v = i->data;
 		alpm_delta_t *vdelta = v->data;
 		if(strcmp(vdelta->to, to) == 0)
 		{
@@ -245,7 +245,7 @@ static alpm_list_t *find_unused(alpm_list_t *deltas, const char *to, off_t quota
 	}
 	dijkstra(vertices);
 	for(i = vertices; i; i = i->next) {
-		alpm_graph_t *v = i->data;
+		_alpm_graph_t *v = i->data;
 		alpm_delta_t *vdelta = v->data;
 		if(v->weight > quota) {
 			unused = alpm_list_add(unused, vdelta->delta);

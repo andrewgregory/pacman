@@ -206,11 +206,11 @@ int SYMEXPORT alpm_db_update(int force, alpm_db_t *db)
 
 	for(i = db->servers; i; i = i->next) {
 		const char *server = i->data;
-		struct dload_payload payload;
+		struct _alpm_dload_payload_t payload;
 		size_t len;
 		int sig_ret = 0;
 
-		memset(&payload, 0, sizeof(struct dload_payload));
+		memset(&payload, 0, sizeof(struct _alpm_dload_payload_t));
 
 		/* set hard upper limit of 25MiB */
 		payload.max_size = 25 * 1024 * 1024;
@@ -364,7 +364,7 @@ static alpm_pkg_t *load_pkg_for_entry(alpm_db_t *db, const char *entryname,
 
 		pkg->origin = ALPM_PKG_FROM_SYNCDB;
 		pkg->origin_data.db = db;
-		pkg->ops = &default_pkg_ops;
+		pkg->ops = &_alpm_default_pkg_ops;
 		pkg->ops->get_validation = _sync_get_validation;
 		pkg->handle = db->handle;
 
@@ -541,7 +541,7 @@ static int sync_db_read(alpm_db_t *db, struct archive *archive,
 {
 	const char *entryname, *filename;
 	alpm_pkg_t *pkg;
-	struct archive_read_buffer buf;
+	struct _alpm_archive_read_buffer_t buf;
 
 	entryname = archive_entry_pathname(entry);
 	if(entryname == NULL) {
@@ -680,7 +680,7 @@ error:
 	return -1;
 }
 
-struct db_operations sync_db_ops = {
+struct _alpm_db_operations_t sync_db_ops = {
 	.validate         = sync_db_validate,
 	.populate         = sync_db_populate,
 	.unregister       = _alpm_db_unregister,

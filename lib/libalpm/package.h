@@ -40,9 +40,9 @@
  * as lazy package intialization (such as used by the file backend). Each
  * backend is free to define a stuct containing pointers to a specific
  * implementation of these methods. Some backends may find using the
- * defined default_pkg_ops struct to work just fine for their needs.
+ * defined _alpm_default_pkg_ops struct to work just fine for their needs.
  */
-struct pkg_operations {
+struct _alpm_pkg_operations_t {
 	const char *(*get_desc) (alpm_pkg_t *);
 	const char *(*get_url) (alpm_pkg_t *);
 	alpm_time_t (*get_builddate) (alpm_pkg_t *);
@@ -80,7 +80,7 @@ struct pkg_operations {
  * The actual definition is in package.c so it can have access to the
  * default accessor functions which are defined there.
  */
-extern struct pkg_operations default_pkg_ops;
+extern struct _alpm_pkg_operations_t _alpm_default_pkg_ops;
 
 struct __alpm_pkg_t {
 	unsigned long name_hash;
@@ -128,7 +128,7 @@ struct __alpm_pkg_t {
 	alpm_list_t *delta_path;
 	alpm_list_t *removes; /* in transaction targets only */
 
-	struct pkg_operations *ops;
+	struct _alpm_pkg_operations_t *ops;
 
 	alpm_filelist_t files;
 };

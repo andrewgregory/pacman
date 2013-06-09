@@ -54,7 +54,7 @@ enum _alpm_dbstatus_t {
 	DB_STATUS_GRPCACHE = (1 << 12)
 };
 
-struct db_operations {
+struct _alpm_db_operations_t {
 	int (*validate) (alpm_db_t *);
 	int (*populate) (alpm_db_t *);
 	void (*unregister) (alpm_db_t *);
@@ -69,7 +69,7 @@ struct __alpm_db_t {
 	alpm_pkghash_t *pkgcache;
 	alpm_list_t *grpcache;
 	alpm_list_t *servers;
-	struct db_operations *ops;
+	struct _alpm_db_operations_t *ops;
 	/* flags determining validity, local, loaded caches, etc. */
 	enum _alpm_dbstatus_t status;
 	alpm_siglevel_t siglevel;

@@ -961,7 +961,7 @@ int _alpm_test_checksum(const char *filepath, const char *expected,
  * @param b
  * @return
  */
-int _alpm_archive_fgets(struct archive *a, struct archive_read_buffer *b)
+int _alpm_archive_fgets(struct archive *a, struct _alpm_archive_read_buffer_t *b)
 {
 	/* ensure we start populating our line buffer at the beginning */
 	b->line_offset = b->line;
@@ -1053,7 +1053,7 @@ cleanup:
 	{
 		int ret = b->ret;
 		FREE(b->line);
-		memset(b, 0, sizeof(struct archive_read_buffer));
+		memset(b, 0, sizeof(struct _alpm_archive_read_buffer_t));
 		return ret;
 	}
 }

@@ -110,18 +110,18 @@ static alpm_list_t *dep_graph_init(alpm_handle_t *handle,
 
 	/* We create the vertices */
 	for(i = targets; i; i = i->next) {
-		alpm_graph_t *vertex = _alpm_graph_new();
+		_alpm_graph_t *vertex = _alpm_graph_new();
 		vertex->data = (void *)i->data;
 		vertices = alpm_list_add(vertices, vertex);
 	}
 
 	/* We compute the edges */
 	for(i = vertices; i; i = i->next) {
-		alpm_graph_t *vertex_i = i->data;
+		_alpm_graph_t *vertex_i = i->data;
 		alpm_pkg_t *p_i = vertex_i->data;
 		/* TODO this should be somehow combined with alpm_checkdeps */
 		for(j = vertices; j; j = j->next) {
-			alpm_graph_t *vertex_j = j->data;
+			_alpm_graph_t *vertex_j = j->data;
 			alpm_pkg_t *p_j = vertex_j->data;
 			if(_alpm_pkg_depends_on(p_i, p_j)) {
 				vertex_i->children =
@@ -174,7 +174,7 @@ alpm_list_t *_alpm_sortbydeps(alpm_handle_t *handle,
 	alpm_list_t *newtargs = NULL;
 	alpm_list_t *vertices = NULL;
 	alpm_list_t *vptr;
-	alpm_graph_t *vertex;
+	_alpm_graph_t *vertex;
 
 	if(targets == NULL) {
 		return NULL;
@@ -191,7 +191,7 @@ alpm_list_t *_alpm_sortbydeps(alpm_handle_t *handle,
 		vertex->state = -1;
 		int found = 0;
 		while(vertex->childptr && !found) {
-			alpm_graph_t *nextchild = vertex->childptr->data;
+			_alpm_graph_t *nextchild = vertex->childptr->data;
 			vertex->childptr = vertex->childptr->next;
 			if(nextchild->state == 0) {
 				found = 1;

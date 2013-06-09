@@ -40,7 +40,7 @@
 #include "deps.h"
 #include "filelist.h"
 
-struct package_changelog {
+struct _alpm_package_changelog_t {
 	struct archive *archive;
 	int fd;
 };
@@ -55,7 +55,7 @@ static void *_package_changelog_open(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
 
-	struct package_changelog *changelog;
+	struct _alpm_package_changelog_t *changelog;
 	struct archive *archive;
 	struct archive_entry *entry;
 	const char *pkgfile = pkg->origin_data.file;
@@ -72,7 +72,7 @@ static void *_package_changelog_open(alpm_pkg_t *pkg)
 		const char *entry_name = archive_entry_pathname(entry);
 
 		if(strcmp(entry_name, ".CHANGELOG") == 0) {
-			changelog = malloc(sizeof(struct package_changelog));
+			changelog = malloc(sizeof(struct _alpm_package_changelog_t));
 			if(!changelog) {
 				pkg->handle->pm_errno = ALPM_ERR_MEMORY;
 				_alpm_archive_read_free(archive);
@@ -104,7 +104,7 @@ static void *_package_changelog_open(alpm_pkg_t *pkg)
 static size_t _package_changelog_read(void *ptr, size_t size,
 		const alpm_pkg_t UNUSED *pkg, void *fp)
 {
-	struct package_changelog *changelog = fp;
+	struct _alpm_package_changelog_t *changelog = fp;
 	ssize_t sret = archive_read_data(changelog->archive, ptr, size);
 	/* Report error (negative values) */
 	if(sret < 0) {
@@ -124,7 +124,7 @@ static size_t _package_changelog_read(void *ptr, size_t size,
 static int _package_changelog_close(const alpm_pkg_t UNUSED *pkg, void *fp)
 {
 	int ret;
-	struct package_changelog *changelog = fp;
+	struct _alpm_package_changelog_t *changelog = fp;
 	ret = _alpm_archive_read_free(changelog->archive);
 	close(changelog->fd);
 	free(changelog);
@@ -133,15 +133,15 @@ static int _package_changelog_close(const alpm_pkg_t UNUSED *pkg, void *fp)
 
 /** Package file operations struct accessor. We implement this as a method
  * rather than a static struct as in be_files because we want to reuse the
- * majority of the default_pkg_ops struct and add only a few operations of
- * our own on top.
+ * majority of the _alpm_default_pkg_ops struct and add only a few operations
+ * of our own on top.
  */
-static struct pkg_operations *get_file_pkg_ops(void)
+static struct _alpm_pkg_operations_t *get_file_pkg_ops(void)
 {
-	static struct pkg_operations file_pkg_ops;
+	static struct _alpm_pkg_operations_t file_pkg_ops;
 	static int file_pkg_ops_initialized = 0;
 	if(!file_pkg_ops_initialized) {
-		file_pkg_ops = default_pkg_ops;
+		file_pkg_ops = _alpm_default_pkg_ops;
 		file_pkg_ops.changelog_open  = _package_changelog_open;
 		file_pkg_ops.changelog_read  = _package_changelog_read;
 		file_pkg_ops.changelog_close = _package_changelog_close;
@@ -162,7 +162,7 @@ static int parse_descfile(alpm_handle_t *handle, struct archive *a, alpm_pkg_t *
 	char *ptr = NULL;
 	char *key = NULL;
 	int ret, linenum = 0;
-	struct archive_read_buffer buf;
+	struct _alpm_archive_read_buffer_t buf;
 
 	memset(&buf, 0, sizeof(buf));
 	/* 512K for a line length seems reasonable */

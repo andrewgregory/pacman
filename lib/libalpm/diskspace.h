@@ -54,7 +54,7 @@ typedef struct __alpm_mountpoint_t {
 	int read_only;
 	enum mount_fsinfo fsinfo_loaded;
 	FSSTATSTYPE fsp;
-} alpm_mountpoint_t;
+} _alpm_mountpoint_t;
 
 int _alpm_check_diskspace(alpm_handle_t *handle);
 int _alpm_check_downloadspace(alpm_handle_t *handle, const char *cachedir,

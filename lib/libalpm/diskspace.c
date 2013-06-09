@@ -52,8 +52,8 @@
 
 static int mount_point_cmp(const void *p1, const void *p2)
 {
-	const alpm_mountpoint_t *mp1 = p1;
-	const alpm_mountpoint_t *mp2 = p2;
+	const _alpm_mountpoint_t *mp1 = p1;
+	const _alpm_mountpoint_t *mp2 = p2;
 	/* the negation will sort all mountpoints before their parent */
 	return -strcmp(mp1->mount_dir, mp2->mount_dir);
 }
@@ -63,13 +63,13 @@ static void mount_point_list_free(alpm_list_t *mount_points)
 	alpm_list_t *i;
 
 	for(i = mount_points; i; i = i->next) {
-		alpm_mountpoint_t *data = i->data;
+		_alpm_mountpoint_t *data = i->data;
 		FREE(data->mount_dir);
 	}
 	FREELIST(mount_points);
 }
 
-static int mount_point_load_fsinfo(alpm_handle_t *handle, alpm_mountpoint_t *mountpoint)
+static int mount_point_load_fsinfo(alpm_handle_t *handle, _alpm_mountpoint_t *mountpoint)
 {
 #if defined(HAVE_GETMNTENT)
 	/* grab the filesystem usage */
@@ -92,7 +92,7 @@ static int mount_point_load_fsinfo(alpm_handle_t *handle, alpm_mountpoint_t *mou
 static alpm_list_t *mount_point_list(alpm_handle_t *handle)
 {
 	alpm_list_t *mount_points = NULL, *ptr;
-	alpm_mountpoint_t *mp;
+	_alpm_mountpoint_t *mp;
 
 #if defined(HAVE_GETMNTENT) && defined(HAVE_MNTENT_H)
 	/* Linux */
@@ -108,7 +108,7 @@ static alpm_list_t *mount_point_list(alpm_handle_t *handle)
 	}
 
 	while((mnt = getmntent(fp))) {
-		CALLOC(mp, 1, sizeof(alpm_mountpoint_t), RET_ERR(handle, ALPM_ERR_MEMORY, NULL));
+		CALLOC(mp, 1, sizeof(_alpm_mountpoint_t), RET_ERR(handle, ALPM_ERR_MEMORY, NULL));
 		mp->mount_dir = strdup(mnt->mnt_dir);
 		mp->mount_dir_len = strlen(mp->mount_dir);
 
@@ -131,7 +131,7 @@ static alpm_list_t *mount_point_list(alpm_handle_t *handle)
 	}
 
 	while((ret = getmntent(fp, &mnt)) == 0) {
-		CALLOC(mp, 1, sizeof(alpm_mountpoint_t), RET_ERR(handle, ALPM_ERR_MEMORY, NULL));
+		CALLOC(mp, 1, sizeof(_alpm_mountpoint_t), RET_ERR(handle, ALPM_ERR_MEMORY, NULL));
 		mp->mount_dir = strdup(mnt->mnt_mountp);
 		mp->mount_dir_len = strlen(mp->mount_dir);
 
@@ -158,7 +158,7 @@ static alpm_list_t *mount_point_list(alpm_handle_t *handle)
 	}
 
 	for(; entries-- > 0; fsp++) {
-		CALLOC(mp, 1, sizeof(alpm_mountpoint_t), RET_ERR(handle, ALPM_ERR_MEMORY, NULL));
+		CALLOC(mp, 1, sizeof(_alpm_mountpoint_t), RET_ERR(handle, ALPM_ERR_MEMORY, NULL));
 		mp->mount_dir = strdup(fsp->f_mntonname);
 		mp->mount_dir_len = strlen(mp->mount_dir);
 		memcpy(&(mp->fsp), fsp, sizeof(FSSTATSTYPE));
@@ -184,13 +184,13 @@ static alpm_list_t *mount_point_list(alpm_handle_t *handle)
 	return mount_points;
 }
 
-static alpm_mountpoint_t *match_mount_point(const alpm_list_t *mount_points,
+static _alpm_mountpoint_t *match_mount_point(const alpm_list_t *mount_points,
 		const char *real_path)
 {
 	const alpm_list_t *mp;
 
 	for(mp = mount_points; mp != NULL; mp = mp->next) {
-		alpm_mountpoint_t *data = mp->data;
+		_alpm_mountpoint_t *data = mp->data;
 
 		/* first, check if the prefix matches */
 		if(strncmp(data->mount_dir, real_path, data->mount_dir_len) == 0) {
@@ -225,7 +225,7 @@ static int calculate_removed_size(alpm_handle_t *handle,
 
 	for(i = 0; i < filelist->count; i++) {
 		const alpm_file_t *file = filelist->files + i;
-		alpm_mountpoint_t *mp;
+		_alpm_mountpoint_t *mp;
 		struct stat st;
 		char path[PATH_MAX];
 		blkcnt_t remove_size;
@@ -280,7 +280,7 @@ static int calculate_installed_size(alpm_handle_t *handle,
 
 	for(i = 0; i < filelist->count; i++) {
 		const alpm_file_t *file = filelist->files + i;
-		alpm_mountpoint_t *mp;
+		_alpm_mountpoint_t *mp;
 		char path[PATH_MAX];
 		blkcnt_t install_size;
 		const char *filename = file->name;
@@ -327,7 +327,7 @@ static int calculate_installed_size(alpm_handle_t *handle,
 	return 0;
 }
 
-static int check_mountpoint(alpm_handle_t *handle, alpm_mountpoint_t *mp)
+static int check_mountpoint(alpm_handle_t *handle, _alpm_mountpoint_t *mp)
 {
 	/* cushion is roughly min(5% capacity, 20MiB) */
 	fsblkcnt_t fivepc = (mp->fsp.f_blocks / 20) + 1;
@@ -352,7 +352,7 @@ int _alpm_check_downloadspace(alpm_handle_t *handle, const char *cachedir,
 		size_t num_files, off_t *file_sizes)
 {
 	alpm_list_t *mount_points;
-	alpm_mountpoint_t *cachedir_mp;
+	_alpm_mountpoint_t *cachedir_mp;
 	char resolved_cachedir[PATH_MAX];
 	size_t j;
 	int error = 0;
@@ -411,7 +411,7 @@ finish:
 int _alpm_check_diskspace(alpm_handle_t *handle)
 {
 	alpm_list_t *mount_points, *i;
-	alpm_mountpoint_t *root_mp;
+	_alpm_mountpoint_t *root_mp;
 	size_t replaces = 0, current = 0, numtargs;
 	int error = 0;
 	alpm_list_t *targ;
@@ -460,7 +460,7 @@ int _alpm_check_diskspace(alpm_handle_t *handle)
 		calculate_installed_size(handle, mount_points, pkg);
 
 		for(i = mount_points; i; i = i->next) {
-			alpm_mountpoint_t *data = i->data;
+			_alpm_mountpoint_t *data = i->data;
 			if(data->blocks_needed > data->max_blocks_needed) {
 				data->max_blocks_needed = data->blocks_needed;
 			}
@@ -471,7 +471,7 @@ int _alpm_check_diskspace(alpm_handle_t *handle)
 			numtargs, current);
 
 	for(i = mount_points; i; i = i->next) {
-		alpm_mountpoint_t *data = i->data;
+		_alpm_mountpoint_t *data = i->data;
 		if(data->used && data->read_only) {
 			_alpm_log(handle, ALPM_LOG_ERROR, _("Partition %s is mounted read only\n"),
 					data->mount_dir);

@@ -821,10 +821,10 @@ static int validate_deltas(alpm_handle_t *handle, alpm_list_t *deltas)
 	return 0;
 }
 
-static struct dload_payload *build_payload(alpm_handle_t *handle,
+static struct _alpm_dload_payload_t *build_payload(alpm_handle_t *handle,
 		const char *filename, size_t size, alpm_list_t *servers)
 {
-		struct dload_payload *payload;
+		struct _alpm_dload_payload_t *payload;
 
 		CALLOC(payload, 1, sizeof(*payload), RET_ERR(handle, ALPM_ERR_MEMORY, NULL));
 		STRDUP(payload->remote_name, filename, RET_ERR(handle, ALPM_ERR_MEMORY, NULL));
@@ -857,7 +857,7 @@ static int find_dl_candidates(alpm_db_t *repo, alpm_list_t **files, alpm_list_t 
 				for(dlts = delta_path; dlts; dlts = dlts->next) {
 					alpm_delta_t *delta = dlts->data;
 					if(delta->download_size != 0) {
-						struct dload_payload *payload = build_payload(
+						struct _alpm_dload_payload_t *payload = build_payload(
 								handle, delta->delta, delta->delta_size, repo->servers);
 						ASSERT(payload, return -1);
 						*files = alpm_list_add(*files, payload);
@@ -867,7 +867,7 @@ static int find_dl_candidates(alpm_db_t *repo, alpm_list_t **files, alpm_list_t 
 				}
 
 			} else if(spkg->download_size != 0) {
-				struct dload_payload *payload;
+				struct _alpm_dload_payload_t *payload;
 				ASSERT(spkg->filename != NULL, RET_ERR(handle, ALPM_ERR_PKG_INVALID_NAME, -1));
 				payload = build_payload(handle, spkg->filename, spkg->size, repo->servers);
 				ASSERT(payload, return -1);
@@ -879,7 +879,7 @@ static int find_dl_candidates(alpm_db_t *repo, alpm_list_t **files, alpm_list_t 
 	return 0;
 }
 
-static int download_single_file(alpm_handle_t *handle, struct dload_payload *payload,
+static int download_single_file(alpm_handle_t *handle, struct _alpm_dload_payload_t *payload,
 		const char *cachedir)
 {
 	const alpm_list_t *server;
@@ -946,7 +946,7 @@ static int download_files(alpm_handle_t *handle, alpm_list_t **deltas)
 			CALLOC(file_sizes, num_files, sizeof(off_t), goto finish);
 
 			for(i = files, idx = 0; i; i = i->next, idx++) {
-				const struct dload_payload *payload = i->data;
+				const struct _alpm_dload_payload_t *payload = i->data;
 				file_sizes[idx] = payload->max_size;
 			}
 

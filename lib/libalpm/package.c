@@ -143,7 +143,7 @@ static int _pkg_force_load(alpm_pkg_t UNUSED *pkg) { return 0; }
 /** The standard package operations struct. Get fields directly from the
  * struct itself with no abstraction layer or any type of lazy loading.
  */
-struct pkg_operations default_pkg_ops = {
+struct _alpm_pkg_operations_t _alpm_default_pkg_ops = {
 	.get_desc        = _pkg_get_desc,
 	.get_url         = _pkg_get_url,
 	.get_builddate   = _pkg_get_builddate,
