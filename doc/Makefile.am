@@ -14,8 +14,7 @@ ASCIIDOC_MANS = \
 	pactree.8 \
 	PKGBUILD.5 \
 	makepkg.conf.5 \
-	pacman.conf.5 \
-	libalpm.3
+	pacman.conf.5
 
 DOXYGEN_MANS = $(wildcard man3/*.3)
 
@@ -30,8 +29,7 @@ HTML_MANPAGES = \
 	pactree.8.html \
 	PKGBUILD.5.html \
 	makepkg.conf.5.html \
-	pacman.conf.5.html \
-	libalpm.3.html
+	pacman.conf.5.html
 
 HTML_OTHER = \
 	index.html \
@@ -58,7 +56,6 @@ EXTRA_DIST = \
 	PKGBUILD-example.txt \
 	makepkg.conf.5.txt \
 	pacman.conf.5.txt \
-	libalpm.3.txt \
 	footer.txt \
 	index.txt \
 	submitting-patches.txt \
@@ -86,7 +83,8 @@ man_MANS =
 dist_man_MANS = $(ASCIIDOC_MANS)
 
 if USE_DOXYGEN
-man_MANS += $(DOXYGEN_MANS)
+# Need to specify the section because we use a wildcard
+man3_MANS = $(DOXYGEN_MANS)
 
 all-local: doxygen.in
 
@@ -159,7 +157,6 @@ pactree.8 pactree.8.html: pactree.8.txt
 PKGBUILD.5 PKGBUILD.5.html: PKGBUILD.5.txt PKGBUILD-example.txt
 makepkg.conf.5 makepkg.conf.5.html: makepkg.conf.5.txt
 pacman.conf.5 pacman.conf.5.html: pacman.conf.5.txt
-libalpm.3 libalpm.3.html: libalpm.3.txt
 # this one is just a symlink
 repo-remove.8: repo-add.8
 	$(RM) repo-remove.8
