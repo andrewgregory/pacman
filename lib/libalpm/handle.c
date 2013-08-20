@@ -132,54 +132,63 @@ int _alpm_handle_unlock(alpm_handle_t *handle)
 }
 
 
+/** Returns the callback used for logging. */
 alpm_cb_log SYMEXPORT alpm_option_get_logcb(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);
 	return handle->logcb;
 }
 
+/** Returns the callback used to report download progress. */
 alpm_cb_download SYMEXPORT alpm_option_get_dlcb(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);
 	return handle->dlcb;
 }
 
+/** Returns the downloading callback. */
 alpm_cb_fetch SYMEXPORT alpm_option_get_fetchcb(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);
 	return handle->fetchcb;
 }
 
+/** Returns the callback used to report total download size. */
 alpm_cb_totaldl SYMEXPORT alpm_option_get_totaldlcb(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);
 	return handle->totaldlcb;
 }
 
+/** Returns the callback used for events. */
 alpm_cb_event SYMEXPORT alpm_option_get_eventcb(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);
 	return handle->eventcb;
 }
 
+/** Returns the callback used for questions. */
 alpm_cb_question SYMEXPORT alpm_option_get_questioncb(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);
 	return handle->questioncb;
 }
 
+/** Returns the callback used for operation progress. */
 alpm_cb_progress SYMEXPORT alpm_option_get_progresscb(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);
 	return handle->progresscb;
 }
 
+/** Returns the root of the destination filesystem. Read-only. */
 const char SYMEXPORT *alpm_option_get_root(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);
 	return handle->root;
 }
 
+/** Returns the path to the database directory. Read-only. */
 const char SYMEXPORT *alpm_option_get_dbpath(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);
@@ -192,24 +201,28 @@ alpm_list_t SYMEXPORT *alpm_option_get_cachedirs(alpm_handle_t *handle)
 	return handle->cachedirs;
 }
 
+/** Returns the logfile name. */
 const char SYMEXPORT *alpm_option_get_logfile(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);
 	return handle->logfile;
 }
 
+/** Get the name of the database lock file. Read-only. */
 const char SYMEXPORT *alpm_option_get_lockfile(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);
 	return handle->lockfile;
 }
 
+/** Returns the path to libalpm's GnuPG home directory. */
 const char SYMEXPORT *alpm_option_get_gpgdir(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);
 	return handle->gpgdir;
 }
 
+/** Returns whether to use syslog (0 is FALSE, TRUE otherwise). */
 int SYMEXPORT alpm_option_get_usesyslog(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return -1);
@@ -240,6 +253,7 @@ alpm_list_t SYMEXPORT *alpm_option_get_ignoregroups(alpm_handle_t *handle)
 	return handle->ignoregroup;
 }
 
+/** Returns the targeted architecture. */
 const char SYMEXPORT *alpm_option_get_arch(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);
@@ -258,6 +272,7 @@ int SYMEXPORT alpm_option_get_checkspace(alpm_handle_t *handle)
 	return handle->checkspace;
 }
 
+/** Sets the callback used for logging. */
 int SYMEXPORT alpm_option_set_logcb(alpm_handle_t *handle, alpm_cb_log cb)
 {
 	CHECK_HANDLE(handle, return -1);
@@ -265,6 +280,7 @@ int SYMEXPORT alpm_option_set_logcb(alpm_handle_t *handle, alpm_cb_log cb)
 	return 0;
 }
 
+/** Sets the callback used to report download progress. */
 int SYMEXPORT alpm_option_set_dlcb(alpm_handle_t *handle, alpm_cb_download cb)
 {
 	CHECK_HANDLE(handle, return -1);
@@ -272,6 +288,7 @@ int SYMEXPORT alpm_option_set_dlcb(alpm_handle_t *handle, alpm_cb_download cb)
 	return 0;
 }
 
+/** Sets the downloading callback. */
 int SYMEXPORT alpm_option_set_fetchcb(alpm_handle_t *handle, alpm_cb_fetch cb)
 {
 	CHECK_HANDLE(handle, return -1);
@@ -279,6 +296,7 @@ int SYMEXPORT alpm_option_set_fetchcb(alpm_handle_t *handle, alpm_cb_fetch cb)
 	return 0;
 }
 
+/** Sets the callback used to report total download size. */
 int SYMEXPORT alpm_option_set_totaldlcb(alpm_handle_t *handle, alpm_cb_totaldl cb)
 {
 	CHECK_HANDLE(handle, return -1);
@@ -286,6 +304,7 @@ int SYMEXPORT alpm_option_set_totaldlcb(alpm_handle_t *handle, alpm_cb_totaldl c
 	return 0;
 }
 
+/** Sets the callback used for events. */
 int SYMEXPORT alpm_option_set_eventcb(alpm_handle_t *handle, alpm_cb_event cb)
 {
 	CHECK_HANDLE(handle, return -1);
@@ -293,6 +312,7 @@ int SYMEXPORT alpm_option_set_eventcb(alpm_handle_t *handle, alpm_cb_event cb)
 	return 0;
 }
 
+/** Sets the callback used for questions. */
 int SYMEXPORT alpm_option_set_questioncb(alpm_handle_t *handle, alpm_cb_question cb)
 {
 	CHECK_HANDLE(handle, return -1);
@@ -300,6 +320,7 @@ int SYMEXPORT alpm_option_set_questioncb(alpm_handle_t *handle, alpm_cb_question
 	return 0;
 }
 
+/** Sets the callback used for operation progress. */
 int SYMEXPORT alpm_option_set_progresscb(alpm_handle_t *handle, alpm_cb_progress cb)
 {
 	CHECK_HANDLE(handle, return -1);
@@ -408,6 +429,7 @@ int SYMEXPORT alpm_option_remove_cachedir(alpm_handle_t *handle, const char *cac
 	return 0;
 }
 
+/** Sets the logfile name. */
 int SYMEXPORT alpm_option_set_logfile(alpm_handle_t *handle, const char *logfile)
 {
 	char *oldlogfile = handle->logfile;
@@ -433,6 +455,7 @@ int SYMEXPORT alpm_option_set_logfile(alpm_handle_t *handle, const char *logfile
 	return 0;
 }
 
+/** Sets the path to libalpm's GnuPG home directory. */
 int SYMEXPORT alpm_option_set_gpgdir(alpm_handle_t *handle, const char *gpgdir)
 {
 	CHECK_HANDLE(handle, return -1);
@@ -450,6 +473,7 @@ int SYMEXPORT alpm_option_set_gpgdir(alpm_handle_t *handle, const char *gpgdir)
 	return 0;
 }
 
+/** Sets whether to use syslog (0 is FALSE, TRUE otherwise). */
 int SYMEXPORT alpm_option_set_usesyslog(alpm_handle_t *handle, int usesyslog)
 {
 	CHECK_HANDLE(handle, return -1);
@@ -565,6 +589,7 @@ int SYMEXPORT alpm_option_remove_ignoregroup(alpm_handle_t *handle, const char *
 	return 0;
 }
 
+/** Sets the targeted architecture. */
 int SYMEXPORT alpm_option_set_arch(alpm_handle_t *handle, const char *arch)
 {
 	CHECK_HANDLE(handle, return -1);

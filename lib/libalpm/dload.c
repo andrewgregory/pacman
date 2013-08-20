@@ -657,7 +657,11 @@ static char *filecache_find_url(alpm_handle_t *handle, const char *url)
 	return _alpm_filecache_find(handle, filebase);
 }
 
-/** Fetch a remote pkg. */
+/** Fetch a remote pkg.
+ * @param handle the context handle
+ * @param url URL of the package to download
+ * @return the downloaded filepath on success, NULL on error
+ */
 char SYMEXPORT *alpm_fetch_pkgurl(alpm_handle_t *handle, const char *url)
 {
 	char *filepath;

@@ -453,11 +453,6 @@ typedef void (*alpm_cb_totaldl)(off_t total);
 typedef int (*alpm_cb_fetch)(const char *url, const char *localpath,
 		int force);
 
-/** Fetch a remote pkg.
- * @param handle the context handle
- * @param url URL of the package to download
- * @return the downloaded filepath on success, NULL on error
- */
 char *alpm_fetch_pkgurl(alpm_handle_t *handle, const char *url);
 
 /** @addtogroup libalpm_options Options
@@ -465,48 +460,31 @@ char *alpm_fetch_pkgurl(alpm_handle_t *handle, const char *url);
  * @{
  */
 
-/** Returns the callback used for logging. */
 alpm_cb_log alpm_option_get_logcb(alpm_handle_t *handle);
-/** Sets the callback used for logging. */
 int alpm_option_set_logcb(alpm_handle_t *handle, alpm_cb_log cb);
 
-/** Returns the callback used to report download progress. */
 alpm_cb_download alpm_option_get_dlcb(alpm_handle_t *handle);
-/** Sets the callback used to report download progress. */
 int alpm_option_set_dlcb(alpm_handle_t *handle, alpm_cb_download cb);
 
-/** Returns the downloading callback. */
 alpm_cb_fetch alpm_option_get_fetchcb(alpm_handle_t *handle);
-/** Sets the downloading callback. */
 int alpm_option_set_fetchcb(alpm_handle_t *handle, alpm_cb_fetch cb);
 
-/** Returns the callback used to report total download size. */
 alpm_cb_totaldl alpm_option_get_totaldlcb(alpm_handle_t *handle);
-/** Sets the callback used to report total download size. */
 int alpm_option_set_totaldlcb(alpm_handle_t *handle, alpm_cb_totaldl cb);
 
-/** Returns the callback used for events. */
 alpm_cb_event alpm_option_get_eventcb(alpm_handle_t *handle);
-/** Sets the callback used for events. */
 int alpm_option_set_eventcb(alpm_handle_t *handle, alpm_cb_event cb);
 
-/** Returns the callback used for questions. */
 alpm_cb_question alpm_option_get_questioncb(alpm_handle_t *handle);
-/** Sets the callback used for questions. */
 int alpm_option_set_questioncb(alpm_handle_t *handle, alpm_cb_question cb);
 
-/** Returns the callback used for operation progress. */
 alpm_cb_progress alpm_option_get_progresscb(alpm_handle_t *handle);
-/** Sets the callback used for operation progress. */
 int alpm_option_set_progresscb(alpm_handle_t *handle, alpm_cb_progress cb);
 
-/** Returns the root of the destination filesystem. Read-only. */
 const char *alpm_option_get_root(alpm_handle_t *handle);
 
-/** Returns the path to the database directory. Read-only. */
 const char *alpm_option_get_dbpath(alpm_handle_t *handle);
 
-/** Get the name of the database lock file. Read-only. */
 const char *alpm_option_get_lockfile(alpm_handle_t *handle);
 
 /** @name Accessors to the list of package cache directories.
@@ -518,19 +496,13 @@ int alpm_option_add_cachedir(alpm_handle_t *handle, const char *cachedir);
 int alpm_option_remove_cachedir(alpm_handle_t *handle, const char *cachedir);
 /** @} */
 
-/** Returns the logfile name. */
 const char *alpm_option_get_logfile(alpm_handle_t *handle);
-/** Sets the logfile name. */
 int alpm_option_set_logfile(alpm_handle_t *handle, const char *logfile);
 
-/** Returns the path to libalpm's GnuPG home directory. */
 const char *alpm_option_get_gpgdir(alpm_handle_t *handle);
-/** Sets the path to libalpm's GnuPG home directory. */
 int alpm_option_set_gpgdir(alpm_handle_t *handle, const char *gpgdir);
 
-/** Returns whether to use syslog (0 is FALSE, TRUE otherwise). */
 int alpm_option_get_usesyslog(alpm_handle_t *handle);
-/** Sets whether to use syslog (0 is FALSE, TRUE otherwise). */
 int alpm_option_set_usesyslog(alpm_handle_t *handle, int usesyslog);
 
 /** @name Accessors to the list of no-upgrade files.
@@ -578,9 +550,7 @@ int alpm_option_set_ignoregroups(alpm_handle_t *handle, alpm_list_t *ignoregrps)
 int alpm_option_remove_ignoregroup(alpm_handle_t *handle, const char *grp);
 /** @} */
 
-/** Returns the targeted architecture. */
 const char *alpm_option_get_arch(alpm_handle_t *handle);
-/** Sets the targeted architecture. */
 int alpm_option_set_arch(alpm_handle_t *handle, const char *arch);
 
 double alpm_option_get_deltaratio(alpm_handle_t *handle);
