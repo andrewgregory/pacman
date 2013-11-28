@@ -35,7 +35,10 @@
 #include "handle.h"
 #include "deps.h"
 
-/** Free a package. */
+/** Free a package.
+ * @param pkg package pointer to free
+ * @return 0 on success, -1 on error (pm_errno is set accordingly)
+ */
 int SYMEXPORT alpm_pkg_free(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return -1);
@@ -48,7 +51,10 @@ int SYMEXPORT alpm_pkg_free(alpm_pkg_t *pkg)
 	return 0;
 }
 
-/** Check the integrity (with md5) of a package from the sync cache. */
+/** Check the integrity (with md5) of a package from the sync cache.
+ * @param pkg package pointer
+ * @return 0 on success, -1 on error (pm_errno is set accordingly)
+ */
 int SYMEXPORT alpm_pkg_checkmd5sum(alpm_pkg_t *pkg)
 {
 	char *fpath;
@@ -174,6 +180,11 @@ struct _alpm_pkg_operations_t _alpm_default_pkg_ops = {
 /* Public functions for getting package information. These functions
  * delegate the hard work to the function callbacks attached to each
  * package, which depend on where the package was loaded from. */
+
+/** Gets the name of the file from which the package was loaded.
+ * @param pkg a pointer to package
+ * @return a reference to an internal string
+ */
 const char SYMEXPORT *alpm_pkg_get_filename(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -181,6 +192,10 @@ const char SYMEXPORT *alpm_pkg_get_filename(alpm_pkg_t *pkg)
 	return pkg->filename;
 }
 
+/** Returns the package name.
+ * @param pkg a pointer to package
+ * @return a reference to an internal string
+ */
 const char SYMEXPORT *alpm_pkg_get_name(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -188,6 +203,12 @@ const char SYMEXPORT *alpm_pkg_get_name(alpm_pkg_t *pkg)
 	return pkg->name;
 }
 
+/** Returns the package version as a string.
+ * This includes all available epoch, version, and pkgrel components. Use
+ * alpm_pkg_vercmp() to compare version strings if necessary.
+ * @param pkg a pointer to package
+ * @return a reference to an internal string
+ */
 const char SYMEXPORT *alpm_pkg_get_version(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -195,6 +216,9 @@ const char SYMEXPORT *alpm_pkg_get_version(alpm_pkg_t *pkg)
 	return pkg->version;
 }
 
+/** Returns the origin of the package.
+ * @return an alpm_pkgfrom_t constant, -1 on error
+ */
 alpm_pkgfrom_t SYMEXPORT alpm_pkg_get_origin(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return -1);
@@ -202,6 +226,10 @@ alpm_pkgfrom_t SYMEXPORT alpm_pkg_get_origin(alpm_pkg_t *pkg)
 	return pkg->origin;
 }
 
+/** Returns the package description.
+ * @param pkg a pointer to package
+ * @return a reference to an internal string
+ */
 const char SYMEXPORT *alpm_pkg_get_desc(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -209,6 +237,10 @@ const char SYMEXPORT *alpm_pkg_get_desc(alpm_pkg_t *pkg)
 	return pkg->ops->get_desc(pkg);
 }
 
+/** Returns the package URL.
+ * @param pkg a pointer to package
+ * @return a reference to an internal string
+ */
 const char SYMEXPORT *alpm_pkg_get_url(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -216,6 +248,10 @@ const char SYMEXPORT *alpm_pkg_get_url(alpm_pkg_t *pkg)
 	return pkg->ops->get_url(pkg);
 }
 
+/** Returns the build timestamp of the package.
+ * @param pkg a pointer to package
+ * @return the timestamp of the build time
+ */
 alpm_time_t SYMEXPORT alpm_pkg_get_builddate(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return -1);
@@ -223,6 +259,10 @@ alpm_time_t SYMEXPORT alpm_pkg_get_builddate(alpm_pkg_t *pkg)
 	return pkg->ops->get_builddate(pkg);
 }
 
+/** Returns the install timestamp of the package.
+ * @param pkg a pointer to package
+ * @return the timestamp of the install time
+ */
 alpm_time_t SYMEXPORT alpm_pkg_get_installdate(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return -1);
@@ -230,6 +270,10 @@ alpm_time_t SYMEXPORT alpm_pkg_get_installdate(alpm_pkg_t *pkg)
 	return pkg->ops->get_installdate(pkg);
 }
 
+/** Returns the packager's name.
+ * @param pkg a pointer to package
+ * @return a reference to an internal string
+ */
 const char SYMEXPORT *alpm_pkg_get_packager(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -237,6 +281,11 @@ const char SYMEXPORT *alpm_pkg_get_packager(alpm_pkg_t *pkg)
 	return pkg->ops->get_packager(pkg);
 }
 
+/** Returns the package's MD5 checksum as a string.
+ * The returned string is a sequence of 32 lowercase hexadecimal digits.
+ * @param pkg a pointer to package
+ * @return a reference to an internal string
+ */
 const char SYMEXPORT *alpm_pkg_get_md5sum(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -244,6 +293,11 @@ const char SYMEXPORT *alpm_pkg_get_md5sum(alpm_pkg_t *pkg)
 	return pkg->md5sum;
 }
 
+/** Returns the package's SHA256 checksum as a string.
+ * The returned string is a sequence of 64 lowercase hexadecimal digits.
+ * @param pkg a pointer to package
+ * @return a reference to an internal string
+ */
 const char SYMEXPORT *alpm_pkg_get_sha256sum(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -251,6 +305,10 @@ const char SYMEXPORT *alpm_pkg_get_sha256sum(alpm_pkg_t *pkg)
 	return pkg->sha256sum;
 }
 
+/** Returns the base64 encoded package signature.
+ * @param pkg a pointer to package
+ * @return a reference to an internal string
+ */
 const char SYMEXPORT *alpm_pkg_get_base64_sig(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -258,6 +316,10 @@ const char SYMEXPORT *alpm_pkg_get_base64_sig(alpm_pkg_t *pkg)
 	return pkg->base64_sig;
 }
 
+/** Returns the architecture for which the package was built.
+ * @param pkg a pointer to package
+ * @return a reference to an internal string
+ */
 const char SYMEXPORT *alpm_pkg_get_arch(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -265,6 +327,11 @@ const char SYMEXPORT *alpm_pkg_get_arch(alpm_pkg_t *pkg)
 	return pkg->ops->get_arch(pkg);
 }
 
+/** Returns the size of the package. This is only available for sync database
+ * packages and package files, not those loaded from the local database.
+ * @param pkg a pointer to package
+ * @return the size of the package in bytes.
+ */
 off_t SYMEXPORT alpm_pkg_get_size(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return -1);
@@ -272,6 +339,10 @@ off_t SYMEXPORT alpm_pkg_get_size(alpm_pkg_t *pkg)
 	return pkg->size;
 }
 
+/** Returns the installed size of the package.
+ * @param pkg a pointer to package
+ * @return the total size of files installed by the package.
+ */
 off_t SYMEXPORT alpm_pkg_get_isize(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return -1);
@@ -279,6 +350,10 @@ off_t SYMEXPORT alpm_pkg_get_isize(alpm_pkg_t *pkg)
 	return pkg->ops->get_isize(pkg);
 }
 
+/** Returns the package installation reason.
+ * @param pkg a pointer to package
+ * @return an enum member giving the install reason.
+ */
 alpm_pkgreason_t SYMEXPORT alpm_pkg_get_reason(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return -1);
@@ -286,6 +361,10 @@ alpm_pkgreason_t SYMEXPORT alpm_pkg_get_reason(alpm_pkg_t *pkg)
 	return pkg->ops->get_reason(pkg);
 }
 
+/** Returns the method used to validate a package during install.
+ * @param pkg a pointer to package
+ * @return an enum member giving the validation method
+ */
 alpm_pkgvalidation_t SYMEXPORT alpm_pkg_get_validation(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return -1);
@@ -293,6 +372,10 @@ alpm_pkgvalidation_t SYMEXPORT alpm_pkg_get_validation(alpm_pkg_t *pkg)
 	return pkg->ops->get_validation(pkg);
 }
 
+/** Returns the list of package licenses.
+ * @param pkg a pointer to package
+ * @return a pointer to an internal list of strings.
+ */
 alpm_list_t SYMEXPORT *alpm_pkg_get_licenses(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -300,6 +383,10 @@ alpm_list_t SYMEXPORT *alpm_pkg_get_licenses(alpm_pkg_t *pkg)
 	return pkg->ops->get_licenses(pkg);
 }
 
+/** Returns the list of package groups.
+ * @param pkg a pointer to package
+ * @return a pointer to an internal list of strings.
+ */
 alpm_list_t SYMEXPORT *alpm_pkg_get_groups(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -307,6 +394,10 @@ alpm_list_t SYMEXPORT *alpm_pkg_get_groups(alpm_pkg_t *pkg)
 	return pkg->ops->get_groups(pkg);
 }
 
+/** Returns the list of package dependencies as alpm_depend_t.
+ * @param pkg a pointer to package
+ * @return a reference to an internal list of alpm_depend_t structures.
+ */
 alpm_list_t SYMEXPORT *alpm_pkg_get_depends(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -314,6 +405,10 @@ alpm_list_t SYMEXPORT *alpm_pkg_get_depends(alpm_pkg_t *pkg)
 	return pkg->ops->get_depends(pkg);
 }
 
+/** Returns the list of package optional dependencies.
+ * @param pkg a pointer to package
+ * @return a reference to an internal list of alpm_depend_t structures.
+ */
 alpm_list_t SYMEXPORT *alpm_pkg_get_optdepends(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -321,6 +416,10 @@ alpm_list_t SYMEXPORT *alpm_pkg_get_optdepends(alpm_pkg_t *pkg)
 	return pkg->ops->get_optdepends(pkg);
 }
 
+/** Returns the list of packages conflicting with pkg.
+ * @param pkg a pointer to package
+ * @return a reference to an internal list of alpm_depend_t structures.
+ */
 alpm_list_t SYMEXPORT *alpm_pkg_get_conflicts(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -328,6 +427,10 @@ alpm_list_t SYMEXPORT *alpm_pkg_get_conflicts(alpm_pkg_t *pkg)
 	return pkg->ops->get_conflicts(pkg);
 }
 
+/** Returns the list of packages provided by pkg.
+ * @param pkg a pointer to package
+ * @return a reference to an internal list of alpm_depend_t structures.
+ */
 alpm_list_t SYMEXPORT *alpm_pkg_get_provides(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -335,6 +438,10 @@ alpm_list_t SYMEXPORT *alpm_pkg_get_provides(alpm_pkg_t *pkg)
 	return pkg->ops->get_provides(pkg);
 }
 
+/** Returns the list of packages to be replaced by pkg.
+ * @param pkg a pointer to package
+ * @return a reference to an internal list of alpm_depend_t structures.
+ */
 alpm_list_t SYMEXPORT *alpm_pkg_get_replaces(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -342,6 +449,10 @@ alpm_list_t SYMEXPORT *alpm_pkg_get_replaces(alpm_pkg_t *pkg)
 	return pkg->ops->get_replaces(pkg);
 }
 
+/** Returns the list of available deltas for pkg.
+ * @param pkg a pointer to package
+ * @return a reference to an internal list of strings.
+ */
 alpm_list_t SYMEXPORT *alpm_pkg_get_deltas(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -349,6 +460,13 @@ alpm_list_t SYMEXPORT *alpm_pkg_get_deltas(alpm_pkg_t *pkg)
 	return pkg->deltas;
 }
 
+/** Returns the list of files installed by pkg.
+ * The filenames are relative to the install root,
+ * and do not include leading slashes.
+ * @param pkg a pointer to package
+ * @return a pointer to a filelist object containing a count and an array of
+ * package file objects
+ */
 alpm_filelist_t SYMEXPORT *alpm_pkg_get_files(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -356,6 +474,13 @@ alpm_filelist_t SYMEXPORT *alpm_pkg_get_files(alpm_pkg_t *pkg)
 	return pkg->ops->get_files(pkg);
 }
 
+/** Returns the list of files backed up when installing pkg.
+ * The elements of the returned list have the form
+ * "<filename>\t<md5sum>", where the given md5sum is that of
+ * the file as provided by the package.
+ * @param pkg a pointer to package
+ * @return a reference to a list of alpm_backup_t objects
+ */
 alpm_list_t SYMEXPORT *alpm_pkg_get_backup(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -363,6 +488,12 @@ alpm_list_t SYMEXPORT *alpm_pkg_get_backup(alpm_pkg_t *pkg)
 	return pkg->ops->get_backup(pkg);
 }
 
+/** Returns the database containing pkg.
+ * Returns a pointer to the alpm_db_t structure the package is
+ * originating from, or NULL if the package was loaded from a file.
+ * @param pkg a pointer to package
+ * @return a pointer to the DB containing pkg, or NULL.
+ */
 alpm_db_t SYMEXPORT *alpm_pkg_get_db(alpm_pkg_t *pkg)
 {
 	/* Sanity checks */
@@ -373,7 +504,12 @@ alpm_db_t SYMEXPORT *alpm_pkg_get_db(alpm_pkg_t *pkg)
 	return pkg->origin_data.db;
 }
 
-/** Open a package changelog for reading. */
+/** Open a package changelog for reading.
+ * Similar to fopen in functionality, except that the returned 'file
+ * stream' could really be from an archive as well as from the database.
+ * @param pkg the package to read the changelog of (either file or db)
+ * @return a 'file stream' to the package changelog
+ */
 void SYMEXPORT *alpm_pkg_changelog_open(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -381,7 +517,16 @@ void SYMEXPORT *alpm_pkg_changelog_open(alpm_pkg_t *pkg)
 	return pkg->ops->changelog_open(pkg);
 }
 
-/** Read data from an open changelog 'file stream'. */
+/** Read data from an open changelog 'file stream'.
+ * Similar to fread in functionality, this function takes a buffer and
+ * amount of data to read. If an error occurs pm_errno will be set.
+ * @param ptr a buffer to fill with raw changelog data
+ * @param size the size of the buffer
+ * @param pkg the package that the changelog is being read from
+ * @param fp a 'file stream' to the package changelog
+ * @return the number of characters read, or 0 if there is no more data or an
+ * error occurred.
+ */
 size_t SYMEXPORT alpm_pkg_changelog_read(void *ptr, size_t size,
 		const alpm_pkg_t *pkg, void *fp)
 {
@@ -398,7 +543,10 @@ int SYMEXPORT alpm_pkg_changelog_close(const alpm_pkg_t *pkg, void *fp)
 	return pkg->ops->changelog_close(pkg, fp);
 }
 
-/** Open a package mtree file for reading. */
+/** Open a package mtree file for reading.
+ * @param pkg the local package to read the changelog of
+ * @return a archive structure for the package mtree file
+ */
 struct archive SYMEXPORT *alpm_pkg_mtree_open(alpm_pkg_t * pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
@@ -406,7 +554,12 @@ struct archive SYMEXPORT *alpm_pkg_mtree_open(alpm_pkg_t * pkg)
 	return pkg->ops->mtree_open(pkg);
 }
 
-/** Read entry from an open mtree file. */
+/** Read next entry from a package mtree file.
+ * @param pkg the package that the mtree file is being read from
+ * @param archive the archive structure reading from the mtree file
+ * @param entry an archive_entry to store the entry header information
+ * @return 0 if end of archive is reached, non-zero otherwise.
+ */
 int SYMEXPORT alpm_pkg_mtree_next(const alpm_pkg_t * pkg, struct archive *archive,
 	struct archive_entry **entry)
 {
@@ -423,6 +576,9 @@ int SYMEXPORT alpm_pkg_mtree_close(const alpm_pkg_t * pkg, struct archive *archi
 	return pkg->ops->mtree_close(pkg, archive);
 }
 
+/** Returns whether the package has an install scriptlet.
+ * @return 0 if FALSE, TRUE otherwise
+ */
 int SYMEXPORT alpm_pkg_has_scriptlet(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return -1);
@@ -486,13 +642,23 @@ static alpm_list_t *compute_requiredby(alpm_pkg_t *pkg, int optional)
 	return reqs;
 }
 
-/** Compute the packages requiring a given package. */
+/** Computes the list of packages requiring a given package.
+ * The return value of this function is a newly allocated
+ * list of package names (char*), it should be freed by the caller.
+ * @param pkg a package
+ * @return the list of packages requiring pkg
+ */
 alpm_list_t SYMEXPORT *alpm_pkg_compute_requiredby(alpm_pkg_t *pkg)
 {
 	return compute_requiredby(pkg, 0);
 }
 
-/** Compute the packages optionally requiring a given package. */
+/** Computes the list of packages optionally requiring a given package.
+ * The return value of this function is a newly allocated
+ * list of package names (char*), it should be freed by the caller.
+ * @param pkg a package
+ * @return the list of packages optionally requiring pkg
+ */
 alpm_list_t SYMEXPORT *alpm_pkg_compute_optionalfor(alpm_pkg_t *pkg)
 {
 	return compute_requiredby(pkg, 1);
@@ -526,8 +692,7 @@ static alpm_list_t *list_depdup(alpm_list_t *old)
 	return new;
 }
 
-/**
- * Duplicate a package data struct.
+/** Duplicate a package data struct.
  * @param pkg the package to duplicate
  * @param new_ptr location to store duplicated package pointer
  * @return 0 on success, -1 on fatal error, 1 on non-fatal error
@@ -704,8 +869,10 @@ int _alpm_pkg_cmp(const void *p1, const void *p2)
 	return strcmp(pkg1->name, pkg2->name);
 }
 
-/* Test for existence of a package in a alpm_list_t*
- * of alpm_pkg_t*
+/** Find a package in a list by name.
+ * @param haystack a list of alpm_pkg_t
+ * @param needle the package name
+ * @return a pointer to the package if found or NULL
  */
 alpm_pkg_t SYMEXPORT *alpm_pkg_find(alpm_list_t *haystack, const char *needle)
 {
@@ -736,13 +903,10 @@ alpm_pkg_t SYMEXPORT *alpm_pkg_find(alpm_list_t *haystack, const char *needle)
 }
 
 /** Test if a package should be ignored.
- *
  * Checks if the package is ignored via IgnorePkg, or if the package is
  * in a group ignored via IgnoreGroup.
- *
  * @param handle the context handle
  * @param pkg the package to test
- *
  * @return 1 if the package should be ignored, 0 otherwise
  */
 int SYMEXPORT alpm_pkg_should_ignore(alpm_handle_t *handle, alpm_pkg_t *pkg)

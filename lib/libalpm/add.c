@@ -47,7 +47,13 @@
 #include "remove.h"
 #include "handle.h"
 
-/** Add a package to the transaction. */
+/** Add a package to the transaction.
+ * If the package was loaded by alpm_pkg_load(), it will be freed upon
+ * alpm_trans_release() invocation.
+ * @param handle the context handle
+ * @param pkg the package to add
+ * @return 0 on success, -1 on error (pm_errno is set accordingly)
+ */
 int SYMEXPORT alpm_add_pkg(alpm_handle_t *handle, alpm_pkg_t *pkg)
 {
 	const char *pkgname, *pkgver;

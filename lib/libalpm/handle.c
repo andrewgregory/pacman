@@ -612,12 +612,24 @@ int SYMEXPORT alpm_option_set_deltaratio(alpm_handle_t *handle, double ratio)
 	return 0;
 }
 
+/** Get the database of locally installed packages.
+ * The returned pointer points to an internal structure
+ * of libalpm which should only be manipulated through
+ * libalpm functions.
+ * @return a reference to the local database
+ */
 alpm_db_t SYMEXPORT *alpm_get_localdb(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);
 	return handle->db_local;
 }
 
+/** Get the list of sync databases.
+ * Returns a list of alpm_db_t structures, one for each registered
+ * sync database.
+ * @param handle the context handle
+ * @return a reference to an internal list of alpm_db_t structures
+ */
 alpm_list_t SYMEXPORT *alpm_get_syncdbs(alpm_handle_t *handle)
 {
 	CHECK_HANDLE(handle, return NULL);

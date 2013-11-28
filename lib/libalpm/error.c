@@ -27,11 +27,13 @@
 #include "alpm.h"
 #include "handle.h"
 
+/** Returns the current error code from the handle. */
 alpm_errno_t SYMEXPORT alpm_errno(alpm_handle_t *handle)
 {
 	return handle->pm_errno;
 }
 
+/** Returns the string corresponding to an error number. */
 const char SYMEXPORT *alpm_strerror(alpm_errno_t err)
 {
 	switch(err) {

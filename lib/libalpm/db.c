@@ -37,7 +37,13 @@
 #include "package.h"
 #include "group.h"
 
-/** Register a sync database of packages. */
+/** Register a sync database of packages.
+ * @param handle the context handle
+ * @param treename the name of the sync repository
+ * @param level what level of signature checking to perform on the
+ * database; note that this must be a '.sig' file type verification
+ * @return an alpm_db_t* on success (the value), NULL on error
+ */
 alpm_db_t SYMEXPORT *alpm_register_syncdb(alpm_handle_t *handle,
 		const char *treename, alpm_siglevel_t level)
 {
@@ -75,7 +81,10 @@ void _alpm_db_unregister(alpm_db_t *db)
 	_alpm_db_free(db);
 }
 
-/** Unregister all package databases. */
+/** Unregister all package databases.
+ * @param handle the context handle
+ * @return 0 on success, -1 on error (pm_errno is set accordingly)
+ */
 int SYMEXPORT alpm_unregister_all_syncdbs(alpm_handle_t *handle)
 {
 	alpm_list_t *i;
@@ -96,7 +105,10 @@ int SYMEXPORT alpm_unregister_all_syncdbs(alpm_handle_t *handle)
 	return 0;
 }
 
-/** Unregister a package database. */
+/** Unregister a package database.
+ * @param db pointer to the package database to unregister
+ * @return 0 on success, -1 on error (pm_errno is set accordingly)
+ */
 int SYMEXPORT alpm_db_unregister(alpm_db_t *db)
 {
 	int found = 0;
@@ -221,14 +233,22 @@ int SYMEXPORT alpm_db_remove_server(alpm_db_t *db, const char *url)
 	return ret;
 }
 
-/** Get the name of a package database. */
+/** Get the name of a package database.
+ * @param db pointer to the package database
+ * @return the name of the package database, NULL on error
+ */
 const char SYMEXPORT *alpm_db_get_name(const alpm_db_t *db)
 {
 	ASSERT(db != NULL, return NULL);
 	return db->treename;
 }
 
-/** Get the signature verification level for a database. */
+/** Get the signature verification level for a database.
+ * Will return the default verification level if this database is set up
+ * with ALPM_SIG_USE_DEFAULT.
+ * @param db pointer to the package database
+ * @return the signature verification level
+ */
 alpm_siglevel_t SYMEXPORT alpm_db_get_siglevel(alpm_db_t *db)
 {
 	ASSERT(db != NULL, return -1);
@@ -239,7 +259,12 @@ alpm_siglevel_t SYMEXPORT alpm_db_get_siglevel(alpm_db_t *db)
 	}
 }
 
-/** Check the validity of a database. */
+/** Check the validity of a database.
+ * This is most useful for sync databases and verifying signature status.
+ * If invalid, the handle error code will be set accordingly.
+ * @param db pointer to the package database
+ * @return 0 if valid, -1 if invalid (pm_errno is set accordingly)
+ */
 int SYMEXPORT alpm_db_get_valid(alpm_db_t *db)
 {
 	ASSERT(db != NULL, return -1);
@@ -247,7 +272,11 @@ int SYMEXPORT alpm_db_get_valid(alpm_db_t *db)
 	return db->ops->validate(db);
 }
 
-/** Get a package entry from a package database. */
+/** Get a package entry from a package database.
+ * @param db pointer to the package database to get the package from
+ * @param name of the package
+ * @return the package entry on success, NULL on error
+ */
 alpm_pkg_t SYMEXPORT *alpm_db_get_pkg(alpm_db_t *db, const char *name)
 {
 	alpm_pkg_t *pkg;
@@ -263,7 +292,10 @@ alpm_pkg_t SYMEXPORT *alpm_db_get_pkg(alpm_db_t *db, const char *name)
 	return pkg;
 }
 
-/** Get the package cache of a package database. */
+/** Get the package cache of a package database.
+ * @param db pointer to the package database to get the package from
+ * @return the list of packages on success, NULL on error
+ */
 alpm_list_t SYMEXPORT *alpm_db_get_pkgcache(alpm_db_t *db)
 {
 	ASSERT(db != NULL, return NULL);
@@ -271,7 +303,11 @@ alpm_list_t SYMEXPORT *alpm_db_get_pkgcache(alpm_db_t *db)
 	return _alpm_db_get_pkgcache(db);
 }
 
-/** Get a group entry from a package database. */
+/** Get a group entry from a package database.
+ * @param db pointer to the package database to get the group from
+ * @param name of the group
+ * @return the groups entry on success, NULL on error
+ */
 alpm_group_t SYMEXPORT *alpm_db_get_group(alpm_db_t *db, const char *name)
 {
 	ASSERT(db != NULL, return NULL);
@@ -282,7 +318,10 @@ alpm_group_t SYMEXPORT *alpm_db_get_group(alpm_db_t *db, const char *name)
 	return _alpm_db_get_groupfromcache(db, name);
 }
 
-/** Get the group cache of a package database. */
+/** Get the group cache of a package database.
+ * @param db pointer to the package database to get the group from
+ * @return the list of groups on success, NULL on error
+ */
 alpm_list_t SYMEXPORT *alpm_db_get_groupcache(alpm_db_t *db)
 {
 	ASSERT(db != NULL, return NULL);
@@ -291,7 +330,11 @@ alpm_list_t SYMEXPORT *alpm_db_get_groupcache(alpm_db_t *db)
 	return _alpm_db_get_groupcache(db);
 }
 
-/** Searches a database. */
+/** Searches a database with regular expressions.
+ * @param db pointer to the package database to search in
+ * @param needles a list of regular expressions to search for
+ * @return the list of packages matching all regular expressions on success, NULL on error
+ */
 alpm_list_t SYMEXPORT *alpm_db_search(alpm_db_t *db, const alpm_list_t *needles)
 {
 	ASSERT(db != NULL, return NULL);
@@ -300,7 +343,11 @@ alpm_list_t SYMEXPORT *alpm_db_search(alpm_db_t *db, const alpm_list_t *needles)
 	return _alpm_db_search(db, needles);
 }
 
-/** Sets the usage bitmask for a repo */
+/** Sets the usage of a database.
+ * @param db pointer to the package database to set the status for
+ * @param usage a bitmask of alpm_db_usage_t values
+ * @return 0 on success, or -1 on error
+ */
 int SYMEXPORT alpm_db_set_usage(alpm_db_t *db, alpm_db_usage_t usage)
 {
 	ASSERT(db != NULL, return -1);
@@ -308,7 +355,11 @@ int SYMEXPORT alpm_db_set_usage(alpm_db_t *db, alpm_db_usage_t usage)
 	return 0;
 }
 
-/** Gets the usage bitmask for a repo */
+/** Gets the usage of a database.
+ * @param db pointer to the package database to get the status of
+ * @param usage pointer to an alpm_db_usage_t to store db's status
+ * @return 0 on success, or -1 on error
+ */
 int SYMEXPORT alpm_db_get_usage(alpm_db_t *db, alpm_db_usage_t *usage)
 {
 	ASSERT(db != NULL, return -1);

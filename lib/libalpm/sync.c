@@ -194,7 +194,11 @@ static alpm_list_t *check_replacers(alpm_handle_t *handle, alpm_pkg_t *lpkg,
 	return replacers;
 }
 
-/** Search for packages to upgrade and add them to the transaction. */
+/** Search for packages to upgrade and add them to the transaction.
+ * @param handle the context handle
+ * @param enable_downgrade allow downgrading of packages if the remote version is lower
+ * @return 0 on success, -1 on error (pm_errno is set accordingly)
+ */
 int SYMEXPORT alpm_sync_sysupgrade(alpm_handle_t *handle, int enable_downgrade)
 {
 	alpm_list_t *i, *j;
@@ -649,7 +653,8 @@ cleanup:
 	return ret;
 }
 
-/** Returns the size of the files that will be downloaded to install a
+/** Returns the size of download.
+ * Returns the size of the files that will be downloaded to install a
  * package.
  * @param newpkg the new package to upgrade to
  * @return the size of the download

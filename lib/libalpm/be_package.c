@@ -550,6 +550,20 @@ static int read_sigfile(const char *sigpath, unsigned char **sig)
 	return st.st_size;
 }
 
+/** Create a package from a file.
+ * If full is false, the archive is read only until all necessary
+ * metadata is found. If it is true, the entire archive is read, which
+ * serves as a verification of integrity and the filelist can be created.
+ * The allocated structure should be freed using alpm_pkg_free().
+ * @param handle the context handle
+ * @param filename location of the package tarball
+ * @param full whether to stop the load after metadata is read or continue
+ * through the full archive
+ * @param level what level of package signature checking to perform on the
+ * package; note that this must be a '.sig' file type verification
+ * @param pkg address of the package pointer
+ * @return 0 on success, -1 on error (pm_errno is set accordingly)
+ */
 int SYMEXPORT alpm_pkg_load(alpm_handle_t *handle, const char *filename, int full,
 		alpm_siglevel_t level, alpm_pkg_t **pkg)
 {

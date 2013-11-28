@@ -130,6 +130,14 @@ int _alpm_files_cmp(const void *f1, const void *f2)
 	return strcmp(file1->name, file2->name);
 }
 
+/** Determines whether a package filelist contains a given path.
+ * The provided path should be relative to the install root with no leading
+ * slashes, e.g. "etc/localtime". When searching for directories, the path must
+ * have a trailing slash.
+ * @param filelist a pointer to a package filelist
+ * @param path the path to search for in the package
+ * @return a pointer to the matching file or NULL if not found
+ */
 alpm_file_t SYMEXPORT *alpm_filelist_contains(alpm_filelist_t *filelist,
 		const char *path)
 {

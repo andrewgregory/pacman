@@ -575,64 +575,18 @@ int alpm_option_set_remote_file_siglevel(alpm_handle_t *handle, alpm_siglevel_t 
  * @{
  */
 
-/** Get the database of locally installed packages.
- * The returned pointer points to an internal structure
- * of libalpm which should only be manipulated through
- * libalpm functions.
- * @return a reference to the local database
- */
 alpm_db_t *alpm_get_localdb(alpm_handle_t *handle);
-
-/** Get the list of sync databases.
- * Returns a list of alpm_db_t structures, one for each registered
- * sync database.
- * @param handle the context handle
- * @return a reference to an internal list of alpm_db_t structures
- */
 alpm_list_t *alpm_get_syncdbs(alpm_handle_t *handle);
 
-/** Register a sync database of packages.
- * @param handle the context handle
- * @param treename the name of the sync repository
- * @param level what level of signature checking to perform on the
- * database; note that this must be a '.sig' file type verification
- * @return an alpm_db_t* on success (the value), NULL on error
- */
 alpm_db_t *alpm_register_syncdb(alpm_handle_t *handle, const char *treename,
 		alpm_siglevel_t level);
-
-/** Unregister all package databases.
- * @param handle the context handle
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
 int alpm_unregister_all_syncdbs(alpm_handle_t *handle);
-
-/** Unregister a package database.
- * @param db pointer to the package database to unregister
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
 int alpm_db_unregister(alpm_db_t *db);
 
-/** Get the name of a package database.
- * @param db pointer to the package database
- * @return the name of the package database, NULL on error
- */
 const char *alpm_db_get_name(const alpm_db_t *db);
 
-/** Get the signature verification level for a database.
- * Will return the default verification level if this database is set up
- * with ALPM_SIG_USE_DEFAULT.
- * @param db pointer to the package database
- * @return the signature verification level
- */
 alpm_siglevel_t alpm_db_get_siglevel(alpm_db_t *db);
 
-/** Check the validity of a database.
- * This is most useful for sync databases and verifying signature status.
- * If invalid, the handle error code will be set accordingly.
- * @param db pointer to the package database
- * @return 0 if valid, -1 if invalid (pm_errno is set accordingly)
- */
 int alpm_db_get_valid(alpm_db_t *db);
 
 /** @name Accessors to the list of servers for a database.
@@ -645,38 +599,10 @@ int alpm_db_remove_server(alpm_db_t *db, const char *url);
 /** @} */
 
 int alpm_db_update(int force, alpm_db_t *db);
-
-/** Get a package entry from a package database.
- * @param db pointer to the package database to get the package from
- * @param name of the package
- * @return the package entry on success, NULL on error
- */
 alpm_pkg_t *alpm_db_get_pkg(alpm_db_t *db, const char *name);
-
-/** Get the package cache of a package database.
- * @param db pointer to the package database to get the package from
- * @return the list of packages on success, NULL on error
- */
 alpm_list_t *alpm_db_get_pkgcache(alpm_db_t *db);
-
-/** Get a group entry from a package database.
- * @param db pointer to the package database to get the group from
- * @param name of the group
- * @return the groups entry on success, NULL on error
- */
 alpm_group_t *alpm_db_get_group(alpm_db_t *db, const char *name);
-
-/** Get the group cache of a package database.
- * @param db pointer to the package database to get the group from
- * @return the list of groups on success, NULL on error
- */
 alpm_list_t *alpm_db_get_groupcache(alpm_db_t *db);
-
-/** Searches a database with regular expressions.
- * @param db pointer to the package database to search in
- * @param needles a list of regular expressions to search for
- * @return the list of packages matching all regular expressions on success, NULL on error
- */
 alpm_list_t *alpm_db_search(alpm_db_t *db, const alpm_list_t *needles);
 
 typedef enum _alpm_db_usage_ {
@@ -687,18 +613,8 @@ typedef enum _alpm_db_usage_ {
 	ALPM_DB_USAGE_ALL = (1 << 4) - 1,
 } alpm_db_usage_t;
 
-/** Sets the usage of a database.
- * @param db pointer to the package database to set the status for
- * @param usage a bitmask of alpm_db_usage_t values
- * @return 0 on success, or -1 on error
- */
 int alpm_db_set_usage(alpm_db_t *db, alpm_db_usage_t usage);
 
-/** Gets the usage of a database.
- * @param db pointer to the package database to get the status of
- * @param usage pointer to an alpm_db_usage_t to store db's status
- * @return 0 on success, or -1 on error
- */
 int alpm_db_get_usage(alpm_db_t *db, alpm_db_usage_t *usage);
 
 /** @} */
@@ -708,68 +624,14 @@ int alpm_db_get_usage(alpm_db_t *db, alpm_db_usage_t *usage);
  * @{
  */
 
-/** Create a package from a file.
- * If full is false, the archive is read only until all necessary
- * metadata is found. If it is true, the entire archive is read, which
- * serves as a verification of integrity and the filelist can be created.
- * The allocated structure should be freed using alpm_pkg_free().
- * @param handle the context handle
- * @param filename location of the package tarball
- * @param full whether to stop the load after metadata is read or continue
- * through the full archive
- * @param level what level of package signature checking to perform on the
- * package; note that this must be a '.sig' file type verification
- * @param pkg address of the package pointer
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
 int alpm_pkg_load(alpm_handle_t *handle, const char *filename, int full,
 		alpm_siglevel_t level, alpm_pkg_t **pkg);
-
-/** Find a package in a list by name.
- * @param haystack a list of alpm_pkg_t
- * @param needle the package name
- * @return a pointer to the package if found or NULL
- */
 alpm_pkg_t *alpm_pkg_find(alpm_list_t *haystack, const char *needle);
-
-/** Free a package.
- * @param pkg package pointer to free
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
 int alpm_pkg_free(alpm_pkg_t *pkg);
-
-/** Check the integrity (with md5) of a package from the sync cache.
- * @param pkg package pointer
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
 int alpm_pkg_checkmd5sum(alpm_pkg_t *pkg);
-
-/** Compare two version strings and determine which one is 'newer'. */
 int alpm_pkg_vercmp(const char *a, const char *b);
-
-/** Computes the list of packages requiring a given package.
- * The return value of this function is a newly allocated
- * list of package names (char*), it should be freed by the caller.
- * @param pkg a package
- * @return the list of packages requiring pkg
- */
 alpm_list_t *alpm_pkg_compute_requiredby(alpm_pkg_t *pkg);
-
-/** Computes the list of packages optionally requiring a given package.
- * The return value of this function is a newly allocated
- * list of package names (char*), it should be freed by the caller.
- * @param pkg a package
- * @return the list of packages optionally requiring pkg
- */
 alpm_list_t *alpm_pkg_compute_optionalfor(alpm_pkg_t *pkg);
-
-/** Test if a package should be ignored.
- * Checks if the package is ignored via IgnorePkg, or if the package is
- * in a group ignored via IgnoreGroup.
- * @param handle the context handle
- * @param pkg the package to test
- * @return 1 if the package should be ignored, 0 otherwise
- */
 int alpm_pkg_should_ignore(alpm_handle_t *handle, alpm_pkg_t *pkg);
 
 /** @name Package Property Accessors
@@ -779,296 +641,71 @@ int alpm_pkg_should_ignore(alpm_handle_t *handle, alpm_pkg_t *pkg);
  * @{
  */
 
-/** Gets the name of the file from which the package was loaded.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
 const char *alpm_pkg_get_filename(alpm_pkg_t *pkg);
-
-/** Returns the package name.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
 const char *alpm_pkg_get_name(alpm_pkg_t *pkg);
-
-/** Returns the package version as a string.
- * This includes all available epoch, version, and pkgrel components. Use
- * alpm_pkg_vercmp() to compare version strings if necessary.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
 const char *alpm_pkg_get_version(alpm_pkg_t *pkg);
-
-/** Returns the origin of the package.
- * @return an alpm_pkgfrom_t constant, -1 on error
- */
 alpm_pkgfrom_t alpm_pkg_get_origin(alpm_pkg_t *pkg);
-
-/** Returns the package description.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
 const char *alpm_pkg_get_desc(alpm_pkg_t *pkg);
-
-/** Returns the package URL.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
 const char *alpm_pkg_get_url(alpm_pkg_t *pkg);
-
-/** Returns the build timestamp of the package.
- * @param pkg a pointer to package
- * @return the timestamp of the build time
- */
 alpm_time_t alpm_pkg_get_builddate(alpm_pkg_t *pkg);
-
-/** Returns the install timestamp of the package.
- * @param pkg a pointer to package
- * @return the timestamp of the install time
- */
 alpm_time_t alpm_pkg_get_installdate(alpm_pkg_t *pkg);
-
-/** Returns the packager's name.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
 const char *alpm_pkg_get_packager(alpm_pkg_t *pkg);
-
-/** Returns the package's MD5 checksum as a string.
- * The returned string is a sequence of 32 lowercase hexadecimal digits.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
 const char *alpm_pkg_get_md5sum(alpm_pkg_t *pkg);
-
-/** Returns the package's SHA256 checksum as a string.
- * The returned string is a sequence of 64 lowercase hexadecimal digits.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
 const char *alpm_pkg_get_sha256sum(alpm_pkg_t *pkg);
-
-/** Returns the architecture for which the package was built.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
 const char *alpm_pkg_get_arch(alpm_pkg_t *pkg);
-
-/** Returns the size of the package. This is only available for sync database
- * packages and package files, not those loaded from the local database.
- * @param pkg a pointer to package
- * @return the size of the package in bytes.
- */
 off_t alpm_pkg_get_size(alpm_pkg_t *pkg);
-
-/** Returns the installed size of the package.
- * @param pkg a pointer to package
- * @return the total size of files installed by the package.
- */
 off_t alpm_pkg_get_isize(alpm_pkg_t *pkg);
-
-/** Returns the package installation reason.
- * @param pkg a pointer to package
- * @return an enum member giving the install reason.
- */
 alpm_pkgreason_t alpm_pkg_get_reason(alpm_pkg_t *pkg);
-
-/** Returns the list of package licenses.
- * @param pkg a pointer to package
- * @return a pointer to an internal list of strings.
- */
 alpm_list_t *alpm_pkg_get_licenses(alpm_pkg_t *pkg);
-
-/** Returns the list of package groups.
- * @param pkg a pointer to package
- * @return a pointer to an internal list of strings.
- */
 alpm_list_t *alpm_pkg_get_groups(alpm_pkg_t *pkg);
-
-/** Returns the list of package dependencies as alpm_depend_t.
- * @param pkg a pointer to package
- * @return a reference to an internal list of alpm_depend_t structures.
- */
 alpm_list_t *alpm_pkg_get_depends(alpm_pkg_t *pkg);
-
-/** Returns the list of package optional dependencies.
- * @param pkg a pointer to package
- * @return a reference to an internal list of alpm_depend_t structures.
- */
 alpm_list_t *alpm_pkg_get_optdepends(alpm_pkg_t *pkg);
-
-/** Returns the list of packages conflicting with pkg.
- * @param pkg a pointer to package
- * @return a reference to an internal list of alpm_depend_t structures.
- */
 alpm_list_t *alpm_pkg_get_conflicts(alpm_pkg_t *pkg);
-
-/** Returns the list of packages provided by pkg.
- * @param pkg a pointer to package
- * @return a reference to an internal list of alpm_depend_t structures.
- */
 alpm_list_t *alpm_pkg_get_provides(alpm_pkg_t *pkg);
-
-/** Returns the list of available deltas for pkg.
- * @param pkg a pointer to package
- * @return a reference to an internal list of strings.
- */
 alpm_list_t *alpm_pkg_get_deltas(alpm_pkg_t *pkg);
-
-/** Returns the list of packages to be replaced by pkg.
- * @param pkg a pointer to package
- * @return a reference to an internal list of alpm_depend_t structures.
- */
 alpm_list_t *alpm_pkg_get_replaces(alpm_pkg_t *pkg);
-
-/** Returns the list of files installed by pkg.
- * The filenames are relative to the install root,
- * and do not include leading slashes.
- * @param pkg a pointer to package
- * @return a pointer to a filelist object containing a count and an array of
- * package file objects
- */
 alpm_filelist_t *alpm_pkg_get_files(alpm_pkg_t *pkg);
-
-/** Returns the list of files backed up when installing pkg.
- * The elements of the returned list have the form
- * "<filename>\t<md5sum>", where the given md5sum is that of
- * the file as provided by the package.
- * @param pkg a pointer to package
- * @return a reference to a list of alpm_backup_t objects
- */
 alpm_list_t *alpm_pkg_get_backup(alpm_pkg_t *pkg);
-
-/** Returns the database containing pkg.
- * Returns a pointer to the alpm_db_t structure the package is
- * originating from, or NULL if the package was loaded from a file.
- * @param pkg a pointer to package
- * @return a pointer to the DB containing pkg, or NULL.
- */
 alpm_db_t *alpm_pkg_get_db(alpm_pkg_t *pkg);
-
-/** Returns the base64 encoded package signature.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
 const char *alpm_pkg_get_base64_sig(alpm_pkg_t *pkg);
-
-/** Returns the method used to validate a package during install.
- * @param pkg a pointer to package
- * @return an enum member giving the validation method
- */
 alpm_pkgvalidation_t alpm_pkg_get_validation(alpm_pkg_t *pkg);
 
 /* End of alpm_pkg_t accessors */
 /* @} */
 
-/** Open a package changelog for reading.
- * Similar to fopen in functionality, except that the returned 'file
- * stream' could really be from an archive as well as from the database.
- * @param pkg the package to read the changelog of (either file or db)
- * @return a 'file stream' to the package changelog
- */
 void *alpm_pkg_changelog_open(alpm_pkg_t *pkg);
-
-/** Read data from an open changelog 'file stream'.
- * Similar to fread in functionality, this function takes a buffer and
- * amount of data to read. If an error occurs pm_errno will be set.
- * @param ptr a buffer to fill with raw changelog data
- * @param size the size of the buffer
- * @param pkg the package that the changelog is being read from
- * @param fp a 'file stream' to the package changelog
- * @return the number of characters read, or 0 if there is no more data or an
- * error occurred.
- */
 size_t alpm_pkg_changelog_read(void *ptr, size_t size,
 		const alpm_pkg_t *pkg, void *fp);
-
 int alpm_pkg_changelog_close(const alpm_pkg_t *pkg, void *fp);
 
-/** Open a package mtree file for reading.
- * @param pkg the local package to read the changelog of
- * @return a archive structure for the package mtree file
- */
 struct archive *alpm_pkg_mtree_open(alpm_pkg_t *pkg);
-
-/** Read next entry from a package mtree file.
- * @param pkg the package that the mtree file is being read from
- * @param archive the archive structure reading from the mtree file
- * @param entry an archive_entry to store the entry header information
- * @return 0 if end of archive is reached, non-zero otherwise.
- */
 int alpm_pkg_mtree_next(const alpm_pkg_t *pkg, struct archive *archive,
 		struct archive_entry **entry);
-
 int alpm_pkg_mtree_close(const alpm_pkg_t *pkg, struct archive *archive);
 
-/** Returns whether the package has an install scriptlet.
- * @return 0 if FALSE, TRUE otherwise
- */
 int alpm_pkg_has_scriptlet(alpm_pkg_t *pkg);
 
-/** Returns the size of download.
- * Returns the size of the files that will be downloaded to install a
- * package.
- * @param newpkg the new package to upgrade to
- * @return the size of the download
- */
 off_t alpm_pkg_download_size(alpm_pkg_t *newpkg);
 
 alpm_list_t *alpm_pkg_unused_deltas(alpm_pkg_t *pkg);
 
-/** Set install reason for a package in the local database.
- * The provided package object must be from the local database or this method
- * will fail. The write to the local database is performed immediately.
- * @param pkg the package to update
- * @param reason the new install reason
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
 int alpm_pkg_set_reason(alpm_pkg_t *pkg, alpm_pkgreason_t reason);
 
 
 /* End of alpm_pkg */
 /** @} */
 
-/*
- * Filelists
- */
-
-/** Determines whether a package filelist contains a given path.
- * The provided path should be relative to the install root with no leading
- * slashes, e.g. "etc/localtime". When searching for directories, the path must
- * have a trailing slash.
- * @param filelist a pointer to a package filelist
- * @param path the path to search for in the package
- * @return a pointer to the matching file or NULL if not found
- */
 alpm_file_t *alpm_filelist_contains(alpm_filelist_t *filelist, const char *path);
 
-/*
- * Signatures
- */
-
 int alpm_pkg_check_pgp_signature(alpm_pkg_t *pkg, alpm_siglist_t *siglist);
-
 int alpm_db_check_pgp_signature(alpm_db_t *db, alpm_siglist_t *siglist);
-
 int alpm_siglist_cleanup(alpm_siglist_t *siglist);
-
 int alpm_decode_signature(const char *base64_data,
 		unsigned char **data, size_t *data_len);
-
 int alpm_extract_keyid(alpm_handle_t *handle, const char *identifier,
 		const unsigned char *sig, const size_t len, alpm_list_t **keys);
 
-/*
- * Groups
- */
-
 alpm_list_t *alpm_find_group_pkgs(alpm_list_t *dbs, const char *name);
-
-/*
- * Sync
- */
 
 alpm_pkg_t *alpm_sync_newversion(alpm_pkg_t *pkg, alpm_list_t *dbs_sync);
 
@@ -1115,84 +752,23 @@ typedef enum _alpm_transflag_t {
 	ALPM_TRANS_FLAG_NOLOCK = (1 << 17)
 } alpm_transflag_t;
 
-/** Returns the bitfield of flags for the current transaction.
- * @param handle the context handle
- * @return the bitfield of transaction flags
- */
 alpm_transflag_t alpm_trans_get_flags(alpm_handle_t *handle);
 
-/** Returns a list of packages added by the transaction.
- * @param handle the context handle
- * @return a list of alpm_pkg_t structures
- */
 alpm_list_t *alpm_trans_get_add(alpm_handle_t *handle);
-
-/** Returns the list of packages removed by the transaction.
- * @param handle the context handle
- * @return a list of alpm_pkg_t structures
- */
 alpm_list_t *alpm_trans_get_remove(alpm_handle_t *handle);
 
-/** Initialize the transaction.
- * @param handle the context handle
- * @param flags flags of the transaction (like nodeps, etc)
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
 int alpm_trans_init(alpm_handle_t *handle, alpm_transflag_t flags);
-
-/** Prepare a transaction.
- * @param handle the context handle
- * @param data the address of an alpm_list where a list
- * of alpm_depmissing_t objects is dumped (conflicting packages)
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
 int alpm_trans_prepare(alpm_handle_t *handle, alpm_list_t **data);
-
-/** Commit a transaction.
- * @param handle the context handle
- * @param data the address of an alpm_list where detailed description
- * of an error can be dumped (i.e. list of conflicting files)
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
 int alpm_trans_commit(alpm_handle_t *handle, alpm_list_t **data);
-
-/** Interrupt a transaction.
- * @param handle the context handle
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
 int alpm_trans_interrupt(alpm_handle_t *handle);
-
-/** Release a transaction.
- * @param handle the context handle
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
 int alpm_trans_release(alpm_handle_t *handle);
 /** @} */
 
 /** @name Common Transactions */
 /** @{ */
 
-/** Search for packages to upgrade and add them to the transaction.
- * @param handle the context handle
- * @param enable_downgrade allow downgrading of packages if the remote version is lower
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
 int alpm_sync_sysupgrade(alpm_handle_t *handle, int enable_downgrade);
-
-/** Add a package to the transaction.
- * If the package was loaded by alpm_pkg_load(), it will be freed upon
- * alpm_trans_release() invocation.
- * @param handle the context handle
- * @param pkg the package to add
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
 int alpm_add_pkg(alpm_handle_t *handle, alpm_pkg_t *pkg);
-
-/** Add a package removal action to the transaction.
- * @param handle the context handle
- * @param pkg the package to uninstall
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
 int alpm_remove_pkg(alpm_handle_t *handle, alpm_pkg_t *pkg);
 
 /** @} */
@@ -1211,10 +787,6 @@ alpm_pkg_t *alpm_find_dbs_satisfier(alpm_handle_t *handle,
 
 alpm_list_t *alpm_checkconflicts(alpm_handle_t *handle, alpm_list_t *pkglist);
 
-/** Returns a newly allocated string representing the dependency information.
- * @param dep a dependency info structure
- * @return a formatted string, e.g. "glibc>=2.12"
- */
 char *alpm_dep_compute_string(const alpm_depend_t *dep);
 
 /** @} */
@@ -1305,10 +877,7 @@ typedef enum _alpm_errno_t {
 	ALPM_ERR_GPGME
 } alpm_errno_t;
 
-/** Returns the current error code from the handle. */
 alpm_errno_t alpm_errno(alpm_handle_t *handle);
-
-/** Returns the string corresponding to an error number. */
 const char *alpm_strerror(alpm_errno_t err);
 
 /* End of alpm_errors */

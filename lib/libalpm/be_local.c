@@ -1048,6 +1048,13 @@ int _alpm_local_db_remove(alpm_db_t *db, alpm_pkg_t *info)
 	return ret;
 }
 
+/** Set install reason for a package in the local database.
+ * The provided package object must be from the local database or this method
+ * will fail. The write to the local database is performed immediately.
+ * @param pkg the package to update
+ * @param reason the new install reason
+ * @return 0 on success, -1 on error (pm_errno is set accordingly)
+ */
 int SYMEXPORT alpm_pkg_set_reason(alpm_pkg_t *pkg, alpm_pkgreason_t reason)
 {
 	ASSERT(pkg != NULL, return -1);

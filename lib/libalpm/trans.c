@@ -40,7 +40,11 @@
 #include "sync.h"
 #include "alpm.h"
 
-/** Initialize the transaction. */
+/** Initialize the transaction.
+ * @param handle the context handle
+ * @param flags flags of the transaction (like nodeps, etc)
+ * @return 0 on success, -1 on error (pm_errno is set accordingly)
+ */
 int SYMEXPORT alpm_trans_init(alpm_handle_t *handle, alpm_transflag_t flags)
 {
 	alpm_trans_t *trans;
@@ -90,7 +94,12 @@ static alpm_list_t *check_arch(alpm_handle_t *handle, alpm_list_t *pkgs)
 	return invalid;
 }
 
-/** Prepare a transaction. */
+/** Prepare a transaction.
+ * @param handle the context handle
+ * @param data the address of an alpm_list where a list
+ * of alpm_depmissing_t objects is dumped (conflicting packages)
+ * @return 0 on success, -1 on error (pm_errno is set accordingly)
+ */
 int SYMEXPORT alpm_trans_prepare(alpm_handle_t *handle, alpm_list_t **data)
 {
 	alpm_trans_t *trans;
@@ -134,7 +143,12 @@ int SYMEXPORT alpm_trans_prepare(alpm_handle_t *handle, alpm_list_t **data)
 	return 0;
 }
 
-/** Commit a transaction. */
+/** Commit a transaction.
+ * @param handle the context handle
+ * @param data the address of an alpm_list where detailed description
+ * of an error can be dumped (i.e. list of conflicting files)
+ * @return 0 on success, -1 on error (pm_errno is set accordingly)
+ */
 int SYMEXPORT alpm_trans_commit(alpm_handle_t *handle, alpm_list_t **data)
 {
 	alpm_trans_t *trans;
@@ -173,7 +187,10 @@ int SYMEXPORT alpm_trans_commit(alpm_handle_t *handle, alpm_list_t **data)
 	return 0;
 }
 
-/** Interrupt a transaction. */
+/** Interrupt a transaction.
+ * @param handle the context handle
+ * @return 0 on success, -1 on error (pm_errno is set accordingly)
+ */
 int SYMEXPORT alpm_trans_interrupt(alpm_handle_t *handle)
 {
 	alpm_trans_t *trans;
@@ -191,7 +208,10 @@ int SYMEXPORT alpm_trans_interrupt(alpm_handle_t *handle)
 	return 0;
 }
 
-/** Release a transaction. */
+/** Release a transaction.
+ * @param handle the context handle
+ * @return 0 on success, -1 on error (pm_errno is set accordingly)
+ */
 int SYMEXPORT alpm_trans_release(alpm_handle_t *handle)
 {
 	alpm_trans_t *trans;
@@ -356,6 +376,10 @@ cleanup:
 	return retval;
 }
 
+/** Returns the bitfield of flags for the current transaction.
+ * @param handle the context handle
+ * @return the bitfield of transaction flags
+ */
 alpm_transflag_t SYMEXPORT alpm_trans_get_flags(alpm_handle_t *handle)
 {
 	/* Sanity checks */
@@ -365,6 +389,10 @@ alpm_transflag_t SYMEXPORT alpm_trans_get_flags(alpm_handle_t *handle)
 	return handle->trans->flags;
 }
 
+/** Returns a list of packages added by the transaction.
+ * @param handle the context handle
+ * @return a list of alpm_pkg_t structures
+ */
 alpm_list_t SYMEXPORT *alpm_trans_get_add(alpm_handle_t *handle)
 {
 	/* Sanity checks */
@@ -374,6 +402,10 @@ alpm_list_t SYMEXPORT *alpm_trans_get_add(alpm_handle_t *handle)
 	return handle->trans->add;
 }
 
+/** Returns the list of packages removed by the transaction.
+ * @param handle the context handle
+ * @return a list of alpm_pkg_t structures
+ */
 alpm_list_t SYMEXPORT *alpm_trans_get_remove(alpm_handle_t *handle)
 {
 	/* Sanity checks */
