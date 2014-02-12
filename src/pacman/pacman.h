@@ -37,6 +37,9 @@ int pacman_sync(alpm_list_t *targets);
 int sync_prepare_execute(void);
 /* upgrade.c */
 int pacman_upgrade(alpm_list_t *targets);
+/* transaction.c */
+int pacman_transaction(alpm_list_t *targets, alpm_list_t *add,
+		alpm_list_t *pkgfile, alpm_list_t *rem);
 
 #endif /* _PM_PACMAN_H */
 

@@ -37,6 +37,7 @@ pacman_SOURCES = \
 	query.c \
 	remove.c \
 	sync.c \
+	transaction.c \
 	callback.h callback.c \
 	upgrade.c \
 	util.h util.c \

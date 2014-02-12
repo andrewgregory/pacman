@@ -47,7 +47,8 @@
 #include "conf.h"
 
 /* list of targets specified on command line */
-static alpm_list_t *pm_targets;
+static alpm_list_t *pm_targets, *pm_add, *pm_rem, *pm_pkgfile;
+alpm_list_t **pm_list = &pm_targets;
 
 /* Used to sort the options in --help */
 static int options_cmp(const void *p1, const void *p2)
@@ -373,6 +374,9 @@ static int parsearg_op(int opt, int dryrun)
 		case 'V':
 			if(dryrun) break;
 			config->version = 1; break;
+		case 'X':
+			if(dryrun) break;
+			config->op = (config->op != PM_OP_MAIN ? 0 : PM_OP_TRANS); break;
 		case 'h':
 			if(dryrun) break;
 			config->help = 1; break;
@@ -708,6 +712,17 @@ static int parsearg_upgrade(int opt)
 	return 0;
 }
 
+static int parsearg_transaction(int opt)
+{
+	switch(opt) {
+		case OP_UNINSTALL: pm_list = &pm_rem; break;
+		case OP_INSTALL: pm_list = &pm_add; break;
+		case OP_PKGFILE: pm_list = &pm_pkgfile; break;
+		default: return 1;
+	}
+	return 0;
+}
+
 static void checkargs_upgrade(void)
 {
 	checkargs_trans();
@@ -808,7 +823,7 @@ static int parseargs(int argc, char *argv[])
 	int opt;
 	int option_index = 0;
 	int result;
-	const char *optstring = "DQRSTUVb:cdefghiklmnopqr:stuvwy";
+	const char *optstring = "-DQRSTUVXb:cdefghiklmnopqr:stuvwy";
 	static const struct option opts[] =
 	{
 		{"database",   no_argument,       0, 'D'},
@@ -867,6 +882,8 @@ static int parseargs(int argc, char *argv[])
 		{"gpgdir",     required_argument, 0, OP_GPGDIR},
 		{"dbonly",     no_argument,       0, OP_DBONLY},
 		{"color",      required_argument, 0, OP_COLOR},
+		{"install",    no_argument, 0, OP_INSTALL},
+		{"uninstall",    no_argument, 0, OP_UNINSTALL},
 		{0, 0, 0, 0}
 	};
 
@@ -899,6 +916,9 @@ static int parseargs(int argc, char *argv[])
 	while((opt = getopt_long(argc, argv, optstring, opts, &option_index)) != -1) {
 		if(opt == 0) {
 			continue;
+		} else if(opt == 1) {
+			*pm_list = alpm_list_add(*pm_list, strdup(optarg));
+			continue;
 		} else if(opt == '?') {
 			/* this should have failed during first pass already */
 			return 1;
@@ -922,6 +942,9 @@ static int parseargs(int argc, char *argv[])
 				break;
 			case PM_OP_UPGRADE:
 				result = parsearg_upgrade(opt);
+				break;
+			case PM_OP_TRANS:
+				result = parsearg_transaction(opt);
 				break;
 			case PM_OP_DEPTEST:
 			default:
@@ -948,7 +971,7 @@ static int parseargs(int argc, char *argv[])
 
 	while(optind < argc) {
 		/* add the target to our target array */
-		pm_targets = alpm_list_add(pm_targets, strdup(argv[optind]));
+		*pm_list = alpm_list_add(*pm_list, strdup(argv[optind]));
 		optind++;
 	}
 
@@ -1204,6 +1227,9 @@ int main(int argc, char *argv[])
 			break;
 		case PM_OP_DEPTEST:
 			ret = pacman_deptest(pm_targets);
+			break;
+		case PM_OP_TRANS:
+			ret = pacman_transaction(pm_targets, pm_add, pm_pkgfile, pm_rem);
 			break;
 		default:
 			pm_printf(ALPM_LOG_ERROR, _("no operation specified (use -h for help)\n"));
