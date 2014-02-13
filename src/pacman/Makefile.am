@@ -35,11 +35,9 @@ pacman_SOURCES = \
 	package.h package.c \
 	pacman.h pacman.c \
 	query.c \
-	remove.c \
 	sync.c \
 	transaction.c \
 	callback.h callback.c \
-	upgrade.c \
 	util.h util.c \
 	util-common.h util-common.c
 

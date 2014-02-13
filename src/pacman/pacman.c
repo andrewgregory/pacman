@@ -1214,10 +1214,10 @@ int main(int argc, char *argv[])
 			ret = pacman_database(pm_targets);
 			break;
 		case PM_OP_REMOVE:
-			ret = pacman_remove(pm_targets);
+			ret = pacman_transaction(NULL, NULL, NULL, pm_targets);
 			break;
 		case PM_OP_UPGRADE:
-			ret = pacman_upgrade(pm_targets);
+			ret = pacman_transaction(NULL, NULL, pm_targets, NULL);
 			break;
 		case PM_OP_QUERY:
 			ret = pacman_query(pm_targets);
