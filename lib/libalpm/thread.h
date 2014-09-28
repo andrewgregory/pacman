@@ -24,17 +24,21 @@
 
 #define _ALPM_TLOCK_CB(h) pthread_mutex_lock(&((h)->tlock_cb))
 #define _ALPM_TLOCK_LOG(h) pthread_mutex_lock(&((h)->tlock_log))
+#define _ALPM_TLOCK_TASK(h) pthread_mutex_lock(&((h)->tlock_task))
 
 #define _ALPM_TUNLOCK_CB(h) pthread_mutex_unlock(&((h)->tlock_cb))
 #define _ALPM_TUNLOCK_LOG(h) pthread_mutex_unlock(&((h)->tlock_log))
+#define _ALPM_TUNLOCK_TASK(h) pthread_mutex_unlock(&((h)->tlock_task))
 
 #else
 
 #define _ALPM_TLOCK_CB(h)
 #define _ALPM_TLOCK_LOG(h)
+#define _ALPM_TLOCK_TASK(h)
 
 #define _ALPM_TUNLOCK_CB(h)
 #define _ALPM_TUNLOCK_LOG(h)
+#define _ALPM_TUNLOCK_TASK(h)
 
 #endif /* HAVE_PTHREAD */
 

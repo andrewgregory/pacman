@@ -47,6 +47,7 @@
 #include "remove.h"
 #include "diskspace.h"
 #include "signing.h"
+#include "thread.h"
 
 /** Check for new version of pkg in sync repos
  * (only the first occurrence is considered in sync)
@@ -57,11 +58,7 @@ alpm_pkg_t SYMEXPORT *alpm_sync_newversion(alpm_pkg_t *pkg, alpm_list_t *dbs_syn
 	alpm_pkg_t *spkg = NULL;
 
 	ASSERT(pkg != NULL, return NULL);
-<<<<<<< HEAD
-	pkg->handle->pm_errno = ALPM_ERR_OK;
-=======
 	_alpm_set_errno(pkg->handle, ALPM_ERR_OK);
->>>>>>> make pm_errno thread-local
 
 	for(i = dbs_sync; !spkg && i; i = i->next) {
 		alpm_db_t *db = i->data;
@@ -1123,37 +1120,60 @@ static int check_keyring(alpm_handle_t *handle)
 }
 #endif /* HAVE_LIBGPGME */
 
-static int check_validity(alpm_handle_t *handle,
-		size_t total, uint64_t total_bytes)
+struct validity {
+	alpm_pkg_t *pkg;
+	char *path;
+	alpm_siglist_t *siglist;
+	alpm_siglevel_t level;
+	alpm_pkgvalidation_t validation;
+	alpm_errno_t error;
+};
+
+struct validity_payload {
+	alpm_handle_t *handle;
+	alpm_list_t *pkgs;
+	alpm_list_t *errors;
+	size_t current;
+	size_t total;
+};
+
+static alpm_list_t *_alpm_list_shift(alpm_list_t **list)
 {
-	struct validity {
-		alpm_pkg_t *pkg;
-		char *path;
-		alpm_siglist_t *siglist;
-		int siglevel;
-		int validation;
-		alpm_errno_t error;
-	};
-	size_t current = 0;
-	uint64_t current_bytes = 0;
-	alpm_list_t *i, *errors = NULL;
-	alpm_event_t event;
+	if(*list) {
+		alpm_list_t *ret = *list;
+		*list = ret->next;
+		return ret;
+	} else {
+		return NULL;
+	}
+}
 
-	/* Check integrity of packages */
-	event.type = ALPM_EVENT_INTEGRITY_START;
-	EVENT(handle, &event);
+static void *check_validity_single(void *payload)
+{
+	struct validity_payload *args = payload;
+	alpm_handle_t *handle = args->handle;
+	alpm_list_t *pkgs = args->pkgs;
 
-	for(i = handle->trans->add; i; i = i->next, current++) {
+	while(1) {
+		alpm_list_t *i;
+
+		_ALPM_TLOCK_TASK(handle);
+		i = _alpm_list_shift(&pkgs);
+		if(!i) {
+			_ALPM_TUNLOCK_TASK(handle);
+			return NULL;
+		}
 		struct validity v = { i->data, NULL, NULL, 0, 0, 0 };
-		int percent = (int)(((double)current_bytes / total_bytes) * 100);
+		args->current++;
+		_ALPM_TUNLOCK_TASK(handle);
 
-		PROGRESS(handle, ALPM_PROGRESS_INTEGRITY_START, "", percent,
-				total, current);
+		PROGRESS(handle, ALPM_PROGRESS_INTEGRITY_START, "",
+				100 * (args->current) / (args->total), (args->total), (args->current));
+
 		if(v.pkg->origin == ALPM_PKG_FROM_FILE) {
 			continue; /* pkg_load() has been already called, this package is valid */
 		}
 
-		current_bytes += v.pkg->size;
 		v.path = _alpm_filecache_find(handle, v.pkg->filename);
 		v.siglevel = alpm_db_get_siglevel(alpm_pkg_get_db(v.pkg));
 
@@ -1161,9 +1181,11 @@ static int check_validity(alpm_handle_t *handle,
 					v.siglevel, &v.siglist, &v.validation) == -1) {
 			struct validity *invalid;
 			v.error = alpm_errno(handle);
-			MALLOC(invalid, sizeof(struct validity), return -1);
+			MALLOC(invalid, sizeof(struct validity), return NULL);
 			memcpy(invalid, &v, sizeof(struct validity));
-			errors = alpm_list_add(errors, invalid);
+			_ALPM_TLOCK_TASK(handle);
+			args->errors = alpm_list_add(args->errors, invalid);
+			_ALPM_TUNLOCK_TASK(handle);
 		} else {
 			alpm_siglist_cleanup(v.siglist);
 			free(v.siglist);
@@ -1171,6 +1193,31 @@ static int check_validity(alpm_handle_t *handle,
 			v.pkg->validation = v.validation;
 		}
 	}
+	return NULL;
+}
+
+static int check_validity(alpm_handle_t *handle,
+		size_t total, uint64_t UNUSED total_bytes)
+{
+	size_t current = 0;
+	alpm_list_t *i, *errors = NULL;
+	alpm_event_t event;
+	struct validity_payload args = {
+		handle,
+		handle->trans->add,
+		errors,
+		current,
+		total,
+	};
+
+	/* Check integrity of packages */
+	event.type = ALPM_EVENT_INTEGRITY_START;
+	EVENT(handle, &event);
+
+	PROGRESS(handle, ALPM_PROGRESS_INTEGRITY_START, "", 0,
+				total, current);
+
+	_alpm_run_threaded(handle, check_validity_single, &args);
 
 	PROGRESS(handle, ALPM_PROGRESS_INTEGRITY_START, "", 100,
 			total, current);
