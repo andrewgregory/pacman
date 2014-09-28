@@ -26,6 +26,7 @@
 
 #include "alpm_list.h"
 #include "alpm.h"
+#include "thread.h"
 
 #ifdef HAVE_LIBCURL
 #include <curl/curl.h>
@@ -34,19 +35,25 @@
 #define EVENT(h, e) \
 do { \
 	if((h)->eventcb) { \
+		_ALPM_TLOCK_CB(h); \
 		(h)->eventcb((alpm_event_t *) (e)); \
+		_ALPM_TUNLOCK_CB(h); \
 	} \
 } while(0)
 #define QUESTION(h, q) \
 do { \
 	if((h)->questioncb) { \
+		_ALPM_TLOCK_CB(h); \
 		(h)->questioncb((alpm_question_t *) (q)); \
+		_ALPM_TUNLOCK_CB(h); \
 	} \
 } while(0)
 #define PROGRESS(h, e, p, per, n, r) \
 do { \
 	if((h)->progresscb) { \
+		_ALPM_TLOCK_CB(h); \
 		(h)->progresscb(e, p, per, n, r); \
+		_ALPM_TUNLOCK_CB(h); \
 	} \
 } while(0)
 
@@ -114,6 +121,11 @@ struct __alpm_handle_t {
 	/* for delta parsing efficiency */
 	int delta_regex_compiled;
 	regex_t delta_regex;
+
+#ifdef HAVE_PTHREAD
+	pthread_mutex_t tlock_cb;
+	pthread_mutex_t tlock_log;
+#endif
 };
 
 alpm_handle_t *_alpm_handle_new(void);

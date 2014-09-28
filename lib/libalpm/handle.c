@@ -47,6 +47,11 @@ alpm_handle_t *_alpm_handle_new(void)
 	handle->deltaratio = 0.0;
 	handle->lockfd = -1;
 
+#ifdef HAVE_PTHREAD
+	pthread_mutex_init(&(handle->tlock_cb), NULL);
+	pthread_mutex_init(&(handle->tlock_log), NULL);
+#endif
+
 	return handle;
 }
 
@@ -73,6 +78,11 @@ void _alpm_handle_free(alpm_handle_t *handle)
 
 #ifdef HAVE_LIBGPGME
 	FREELIST(handle->known_keys);
+#endif
+
+#ifdef HAVE_PTHREAD
+	pthread_mutex_destroy(&(handle->tlock_cb));
+	pthread_mutex_destroy(&(handle->tlock_log));
 #endif
 
 	regfree(&handle->delta_regex);
