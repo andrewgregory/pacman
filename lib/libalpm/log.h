@@ -27,6 +27,9 @@
 void _alpm_log(alpm_handle_t *handle, alpm_loglevel_t flag,
 		const char *fmt, ...) __attribute__((format(printf,3,4)));
 
+int _alpm_logaction(alpm_handle_t *handle, const char *prefix, const char *fmt, va_list args)
+	__attribute__((format(printf, 3, 0)));
+
 #endif /* ALPM_LOG_H */
 
 /* vim: set noet: */
