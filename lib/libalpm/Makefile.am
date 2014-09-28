@@ -62,7 +62,7 @@ libalpm_la_LDFLAGS = -no-undefined -version-info $(LIB_VERSION_INFO)
 
 libalpm_la_CFLAGS = \
 	$(AM_CFLAGS) \
-	$(GPGME_CFLAGS) \
+	$(GPGME_PTHREAD_CFLAGS) \
 	$(LIBARCHIVE_CFLAGS) \
 	$(LIBCURL_CFLAGS) \
 	$(LIBSSL_CFLAGS) \
@@ -70,7 +70,7 @@ libalpm_la_CFLAGS = \
 
 libalpm_la_LIBADD = \
 	$(LTLIBINTL) \
-	$(GPGME_LIBS) \
+	$(GPGME_PTHREAD_LIBS) \
 	$(LIBARCHIVE_LIBS) \
 	$(LIBCURL_LIBS) \
 	$(LIBSSL_LIBS) \

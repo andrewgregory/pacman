@@ -23,6 +23,8 @@
 #ifndef ALPM_H
 #define ALPM_H
 
+#define HAVE_PTHREAD /* XXX testing */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

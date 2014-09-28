@@ -260,14 +260,14 @@ AS_IF([test "x$with_gpgme" != "xno"],
 
 have_gpgme=no
 AS_IF([test "x$with_gpgme" != "xno"],
-	[AM_PATH_GPGME([1.3.0],
+	[AM_PATH_GPGME_PTHREAD([1.3.0],
 		[LIBS_save="$LIBS"
 		CPPFLAGS_save="$CPPFLAGS"
 		CFLAGS_save="$CFLAGS"
 
-		LIBS="$LIBS $GPGME_LIBS"
-		CPPFLAGS="$CPPFLAGS $GPGME_CPPFLAGS"
-		CFLAGS="$CFLAGS $GPGME_CFLAGS"
+		LIBS="$LIBS $GPGME_PTHREAD_LIBS"
+		CPPFLAGS="$CPPFLAGS $GPGME_PTHREAD_CPPFLAGS"
+		CFLAGS="$CFLAGS $GPGME_PTHREAD_CFLAGS"
 
 		AC_MSG_CHECKING([for sane gpgme])
 		AC_LINK_IFELSE(
@@ -279,8 +279,8 @@ AS_IF([test "x$with_gpgme" != "xno"],
 			AC_DEFINE([HAVE_LIBGPGME], [1], [Define if gpgme should be used to provide GPG signature support.])],
 			[AC_MSG_RESULT([no])
 			have_gpgme=no
-			unset GPGME_LIBS
-			unset GPGME_CFLAGS]
+			unset GPGME_PTHREAD_LIBS
+			unset GPGME_PTHREAD_CFLAGS]
 			AS_IF([test "x$with_gpgme" = "xyes"],
 				[AC_MSG_FAILURE([*** gpgme >= 1.3.0 is needed for GPG signature support])])
 			)
