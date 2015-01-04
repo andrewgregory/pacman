@@ -1,4 +1,4 @@
-SUBDIRS = lib/libalpm src/util src/pacman scripts etc test/pacman test/util test/scripts
+SUBDIRS = lib/libalpm src/util src/pacman scripts etc test/pacman test/util test/scripts test/alpm
 if WANT_DOC
 SUBDIRS += doc
 endif
@@ -31,7 +31,10 @@ TESTS =  test/scripts/parseopts_test.sh \
 				 test/scripts/makepkg-template_test.sh \
 				 test/scripts/pacman-db-upgrade-v9.py \
 				 test/util/pacsorttest.sh \
-				 test/util/vercmptest.sh
+				 test/util/vercmptest.sh \
+				 test/alpm/alpm_list.t \
+				 test/alpm/alpm_filelist.t \
+				 test/alpm/alpm_initialize.t
 include $(top_srcdir)/test/pacman/tests/TESTS
 
 TEST_SUITE_LOG = test/test-suite.log
