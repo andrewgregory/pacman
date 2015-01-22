@@ -53,10 +53,7 @@ alpm_handle_t *_alpm_handle_new(void)
 	pthread_mutex_init(&(handle->tlock_log), NULL);
 	pthread_mutex_init(&(handle->tlock_task), NULL);
 	pthread_key_create(&(handle->tkey_err), free);
-	pthread_setspecific(handle->tkey_err, malloc(sizeof(int)));
 #endif
-
-	_alpm_set_errno(handle, 0);
 
 	return handle;
 }
