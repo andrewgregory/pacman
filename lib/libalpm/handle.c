@@ -907,17 +907,14 @@ void _alpm_run_threaded(alpm_handle_t *handle,
 		void *(*function) (void *), void *arg)
 {
 #ifdef HAVE_PTHREAD
-	if(handle->threads > 1) {
-		pthread_t threads[handle->threads];
-		int idx;
-		for(idx = 0; idx < handle->threads; idx++) {
-			pthread_create(&threads[idx], NULL, function, arg);
-		}
-		for(idx = 0; idx < handle->threads; idx++) {
-			pthread_join(threads[idx], NULL);
-		}
-	} else {
-		function(arg);
+	pthread_t threads[handle->threads - 1];
+	int idx;
+	for(idx = 0; idx < handle->threads - 1; idx++) {
+		pthread_create(&threads[idx], NULL, function, arg);
+	}
+	function(arg);
+	for(idx = 0; idx < handle->threads - 1; idx++) {
+		pthread_join(threads[idx], NULL);
 	}
 #else
 	function(arg);
