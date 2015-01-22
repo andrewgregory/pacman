@@ -48,7 +48,7 @@ alpm_handle_t *_alpm_handle_new(void)
 	handle->lockfd = -1;
 
 #ifdef HAVE_PTHREAD
-	handle->threads = 4;
+	handle->threads = 1;
 	pthread_mutex_init(&(handle->tlock_cb), NULL);
 	pthread_mutex_init(&(handle->tlock_log), NULL);
 	pthread_mutex_init(&(handle->tlock_task), NULL);
@@ -924,6 +924,30 @@ void _alpm_run_threaded(alpm_handle_t *handle,
 	}
 #else
 	function(arg);
+#endif
+}
+
+int SYMEXPORT alpm_option_set_thread_count(alpm_handle_t *handle,
+		unsigned int threads)
+{
+	CHECK_HANDLE(handle, return -1);
+#ifdef HAVE_PTHREAD
+	handle->threads = threads;
+#else
+	if(threads > 1) {
+		RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1);
+	}
+#endif
+	return 0;
+}
+
+unsigned int SYMEXPORT alpm_option_get_thread_count(alpm_handle_t *handle)
+{
+	CHECK_HANDLE(handle, return -1);
+#ifdef HAVE_PTHREAD
+	return handle->threads;
+#else
+	return 1;
 #endif
 }
 

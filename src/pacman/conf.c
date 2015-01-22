@@ -606,6 +606,26 @@ static int _parse_options(const char *key, char *value,
 				return 1;
 			}
 			FREELIST(values);
+		} else if(strcmp(key, "Threads") == 0) {
+			unsigned long threads;
+			char *endptr;
+
+			if(!(alpm_capabilities() & ALPM_CAPABILITY_THREADS)) {
+				pm_printf(ALPM_LOG_ERROR,
+						_("config file %s, line %d: '%s' option invalid, no thread support\n"),
+						file, linenum, "Threads");
+				return 1;
+			}
+
+			threads = strtoul(value, &endptr, 10);
+			if(*endptr != '\0' || threads < 0) {
+				pm_printf(ALPM_LOG_ERROR,
+						_("config file %s, line %d: invalid value for '%s' : '%s'\n"),
+						file, linenum, "Threads", value);
+				return 1;
+			}
+			config->threads = threads;
+			pm_printf(ALPM_LOG_DEBUG, "config: Threads = %f\n", threads);
 		} else {
 			pm_printf(ALPM_LOG_WARNING,
 					_("config file %s, line %d: directive '%s' in section '%s' not recognized.\n"),

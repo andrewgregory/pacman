@@ -126,6 +126,7 @@ typedef struct __config_t {
 	alpm_list_t *noextract;
 	alpm_list_t *overwrite_files;
 	char *xfercommand;
+	unsigned int threads;
 
 	/* our connection to libalpm */
 	alpm_handle_t *handle;

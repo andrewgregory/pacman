@@ -164,6 +164,9 @@ int SYMEXPORT alpm_capabilities(void)
 #ifdef HAVE_LIBGPGME
 		| ALPM_CAPABILITY_SIGNATURES
 #endif
+#ifdef HAVE_PTHREAD
+		| ALPM_CAPABILITY_THREADS
+#endif
 		| 0;
 }
 

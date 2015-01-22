@@ -1630,7 +1630,8 @@ int alpm_unlock(alpm_handle_t *handle);
 enum alpm_caps {
 	ALPM_CAPABILITY_NLS = (1 << 0),
 	ALPM_CAPABILITY_DOWNLOADER = (1 << 1),
-	ALPM_CAPABILITY_SIGNATURES = (1 << 2)
+	ALPM_CAPABILITY_SIGNATURES = (1 << 2),
+	ALPM_CAPABILITY_THREADS = (1 << 3)
 };
 
 const char *alpm_version(void);
