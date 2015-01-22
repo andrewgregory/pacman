@@ -918,6 +918,9 @@ int alpm_option_set_arch(alpm_handle_t *handle, const char *arch);
 double alpm_option_get_deltaratio(alpm_handle_t *handle);
 int alpm_option_set_deltaratio(alpm_handle_t *handle, double ratio);
 
+unsigned int alpm_option_get_thread_count(alpm_handle_t *handle);
+int alpm_option_set_thread_count(alpm_handle_t *handle, unsigned int threads);
+
 int alpm_option_get_checkspace(alpm_handle_t *handle);
 int alpm_option_set_checkspace(alpm_handle_t *handle, int checkspace);
 
