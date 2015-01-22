@@ -48,6 +48,7 @@ alpm_handle_t *_alpm_handle_new(void)
 	handle->lockfd = -1;
 
 #ifdef HAVE_PTHREAD
+	handle->threads = 4;
 	pthread_mutex_init(&(handle->tlock_cb), NULL);
 	pthread_mutex_init(&(handle->tlock_log), NULL);
 	pthread_mutex_init(&(handle->tlock_task), NULL);
@@ -902,6 +903,27 @@ void _alpm_set_errno(alpm_handle_t *handle, alpm_errno_t err) {
 	*err_key = err;
 #else
 	handle->pm_errno = err;
+#endif
+}
+
+void _alpm_run_threaded(alpm_handle_t *handle,
+		void *(*function) (void *), void *arg)
+{
+#ifdef HAVE_PTHREAD
+	if(handle->threads > 1) {
+		pthread_t threads[handle->threads];
+		int idx;
+		for(idx = 0; idx < handle->threads; idx++) {
+			pthread_create(&threads[idx], NULL, function, arg);
+		}
+		for(idx = 0; idx < handle->threads; idx++) {
+			pthread_join(threads[idx], NULL);
+		}
+	} else {
+		function(arg);
+	}
+#else
+	function(arg);
 #endif
 }
 

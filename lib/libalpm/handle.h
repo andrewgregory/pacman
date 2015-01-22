@@ -124,6 +124,7 @@ struct __alpm_handle_t {
 	regex_t delta_regex;
 
 #ifdef HAVE_PTHREAD
+	int threads;
 	pthread_mutex_t tlock_cb;
 	pthread_mutex_t tlock_log;
 	pthread_mutex_t tlock_task;
@@ -144,6 +145,9 @@ alpm_errno_t _alpm_set_directory_option(const char *value,
 		char **storage, int must_exist);
 
 void _alpm_set_errno(alpm_handle_t *handle, alpm_errno_t err);
+
+void _alpm_run_threaded(alpm_handle_t *handle,
+		void *(*function) (void *), void *arg);
 
 #endif /* ALPM_HANDLE_H */
 
