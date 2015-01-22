@@ -105,7 +105,7 @@ config_t *config_new(void)
 	newconfig->logmask = ALPM_LOG_ERROR | ALPM_LOG_WARNING;
 	newconfig->configfile = strdup(CONFFILE);
 	newconfig->deltaratio = 0.0;
-	newconfig->threads = 1;
+	newconfig->threads = 0;
 	if(alpm_capabilities() & ALPM_CAPABILITY_SIGNATURES) {
 		newconfig->siglevel = ALPM_SIG_PACKAGE | ALPM_SIG_PACKAGE_OPTIONAL |
 			ALPM_SIG_DATABASE | ALPM_SIG_DATABASE_OPTIONAL;
@@ -610,6 +610,10 @@ static int _parse_options(const char *key, char *value,
 		} else if(strcmp(key, "Threads") == 0) {
 			unsigned long threads;
 			char *endptr;
+
+			if(config->threads != 0) {
+				return 0;
+			}
 
 			if(!(alpm_capabilities() & ALPM_CAPABILITY_THREADS)) {
 				pm_printf(ALPM_LOG_ERROR,

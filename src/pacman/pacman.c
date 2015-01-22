@@ -368,6 +368,24 @@ static int parsearg_op(int opt, int dryrun)
 	return 0;
 }
 
+static void set_threads(const char *value)
+{
+	unsigned long threads;
+	char *endptr;
+
+	if(!(alpm_capabilities() & ALPM_CAPABILITY_THREADS)) {
+		pm_printf(ALPM_LOG_ERROR,
+				_("'%s' option invalid, no thread support\n"), "--threads");
+	}
+
+	threads = strtoul(value, &endptr, 10);
+	if(*endptr != '\0' || threads < 1 || threads > UINT_MAX) {
+		pm_printf(ALPM_LOG_ERROR,
+				_("invalid value for '%s' : '%s'\n"), "--threads", value);
+	}
+	config->threads = threads;
+}
+
 /** Helper functions for parsing command-line arguments.
  * @param opt Keycode returned by getopt_long
  * @return 0 on success, 1 on failure
@@ -459,6 +477,8 @@ static int parsearg_global(int opt)
 			break;
 		case OP_DISABLEDLTIMEOUT:
 			config->disable_dl_timeout = 1;
+		case OP_THREADS:
+			set_threads(optarg);
 			break;
 		case OP_VERBOSE:
 		case 'v':
@@ -963,6 +983,7 @@ static int parseargs(int argc, char *argv[])
 		{"dbonly",     no_argument,       0, OP_DBONLY},
 		{"color",      required_argument, 0, OP_COLOR},
 		{"disable-download-timeout", no_argument, 0, OP_DISABLEDLTIMEOUT},
+		{"threads",    required_argument, 0, OP_THREADS},
 		{0, 0, 0, 0}
 	};
 
