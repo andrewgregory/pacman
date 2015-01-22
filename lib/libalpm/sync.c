@@ -1152,13 +1152,12 @@ static void *check_validity_single(void *payload)
 {
 	struct validity_payload *args = payload;
 	alpm_handle_t *handle = args->handle;
-	alpm_list_t *pkgs = args->pkgs;
 
 	while(1) {
 		alpm_list_t *i;
 
 		_ALPM_TLOCK_TASK(handle);
-		i = _alpm_list_shift(&pkgs);
+		i = _alpm_list_shift(&(args->pkgs));
 		if(!i) {
 			_ALPM_TUNLOCK_TASK(handle);
 			return NULL;
