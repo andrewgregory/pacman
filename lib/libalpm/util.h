@@ -63,12 +63,12 @@ void _alpm_alloc_fail(size_t size);
 
 #define RET_ERR_VOID(handle, err) do { \
 	_alpm_log(handle, ALPM_LOG_DEBUG, "returning error %d from %s : %s\n", err, __func__, alpm_strerror(err)); \
-	(handle)->pm_errno = (err); \
+	_alpm_set_errno(handle, err); \
 	return; } while(0)
 
 #define RET_ERR(handle, err, ret) do { \
 	_alpm_log(handle, ALPM_LOG_DEBUG, "returning error %d from %s : %s\n", err, __func__, alpm_strerror(err)); \
-	(handle)->pm_errno = (err); \
+	_alpm_set_errno(handle, err); \
 	return (ret); } while(0)
 
 #define RET_ERR_ASYNC_SAFE(handle, err, ret) do { \
@@ -77,7 +77,7 @@ void _alpm_alloc_fail(size_t size);
 
 #define DOUBLE_EQ(x, y) (fabs((x) - (y)) < DBL_EPSILON)
 
-#define CHECK_HANDLE(handle, action) do { if(!(handle)) { action; } (handle)->pm_errno = ALPM_ERR_OK; } while(0)
+#define CHECK_HANDLE(handle, action) do { if(!(handle)) { action; } _alpm_set_errno(handle, ALPM_ERR_OK); } while(0)
 
 /** Standard buffer size used throughout the library. */
 #ifdef BUFSIZ

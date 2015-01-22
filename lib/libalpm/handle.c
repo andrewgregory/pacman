@@ -50,7 +50,12 @@ alpm_handle_t *_alpm_handle_new(void)
 #ifdef HAVE_PTHREAD
 	pthread_mutex_init(&(handle->tlock_cb), NULL);
 	pthread_mutex_init(&(handle->tlock_log), NULL);
+	pthread_mutex_init(&(handle->tlock_task), NULL);
+	pthread_key_create(&(handle->tkey_err), free);
+	pthread_setspecific(handle->tkey_err, malloc(sizeof(int)));
 #endif
+
+	_alpm_set_errno(handle, 0);
 
 	return handle;
 }
@@ -539,7 +544,7 @@ int SYMEXPORT alpm_option_set_logfile(alpm_handle_t *handle, const char *logfile
 
 	CHECK_HANDLE(handle, return -1);
 	if(!logfile) {
-		handle->pm_errno = ALPM_ERR_WRONG_ARGS;
+		_alpm_set_errno(handle, ALPM_ERR_WRONG_ARGS);
 		return -1;
 	}
 
@@ -885,6 +890,19 @@ int SYMEXPORT alpm_option_set_disable_dl_timeout(alpm_handle_t *handle,
 	handle->disable_dl_timeout = disable_dl_timeout;
 #endif
 	return 0;
+}
+
+void _alpm_set_errno(alpm_handle_t *handle, alpm_errno_t err) {
+#ifdef HAVE_PTHREAD
+	alpm_errno_t *err_key = pthread_getspecific(handle->tkey_err);
+	if(!err_key) {
+		err_key = malloc(sizeof(alpm_errno_t));
+		pthread_setspecific(handle->tkey_err, err_key);
+	}
+	*err_key = err;
+#else
+	handle->pm_errno = err;
+#endif
 }
 
 /* vim: set noet: */

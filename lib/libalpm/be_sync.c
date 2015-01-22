@@ -78,7 +78,7 @@ static int sync_db_validate(alpm_db_t *db)
 		return 0;
 	}
 	if(db->status & DB_STATUS_INVALID) {
-		db->handle->pm_errno = ALPM_ERR_DB_INVALID_SIG;
+		_alpm_set_errno(db->handle, ALPM_ERR_DB_INVALID_SIG);
 		return -1;
 	}
 
@@ -126,7 +126,7 @@ static int sync_db_validate(alpm_db_t *db)
 		if(ret) {
 			db->status &= ~DB_STATUS_VALID;
 			db->status |= DB_STATUS_INVALID;
-			db->handle->pm_errno = ALPM_ERR_DB_INVALID_SIG;
+			_alpm_set_errno(db->handle, ALPM_ERR_DB_INVALID_SIG);
 			return 1;
 		}
 	}
@@ -186,7 +186,7 @@ int SYMEXPORT alpm_db_update(int force, alpm_db_t *db)
 	/* Sanity checks */
 	ASSERT(db != NULL, return -1);
 	handle = db->handle;
-	handle->pm_errno = ALPM_ERR_OK;
+	_alpm_set_errno(handle, ALPM_ERR_OK);
 	ASSERT(db != handle->db_local, RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
 	ASSERT(db->servers != NULL, RET_ERR(handle, ALPM_ERR_SERVER_NONE, -1));
 
@@ -501,7 +501,7 @@ static int sync_db_populate(alpm_db_t *db)
 
 	db->pkgcache = _alpm_pkghash_create(est_count);
 	if(db->pkgcache == NULL) {
-		db->handle->pm_errno = ALPM_ERR_MEMORY;
+		_alpm_set_errno(db->handle, ALPM_ERR_MEMORY);
 		ret = -1;
 		goto cleanup;
 	}

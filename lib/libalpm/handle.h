@@ -28,6 +28,10 @@
 #include "alpm.h"
 #include "thread.h"
 
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#endif
+
 #ifdef HAVE_LIBCURL
 #include <curl/curl.h>
 #endif
@@ -112,9 +116,6 @@ struct __alpm_handle_t {
 	int remotefilesiglevel;  /* Signature verification level for remote file
 	                                       upgrade operations */
 
-	/* error code */
-	alpm_errno_t pm_errno;
-
 	/* lock file descriptor */
 	int lockfd;
 
@@ -125,6 +126,11 @@ struct __alpm_handle_t {
 #ifdef HAVE_PTHREAD
 	pthread_mutex_t tlock_cb;
 	pthread_mutex_t tlock_log;
+	pthread_mutex_t tlock_task;
+	pthread_key_t tkey_err;
+#else
+	/* error code */
+	alpm_errno_t pm_errno;
 #endif
 };
 
@@ -136,6 +142,8 @@ int _alpm_handle_unlock(alpm_handle_t *handle);
 
 alpm_errno_t _alpm_set_directory_option(const char *value,
 		char **storage, int must_exist);
+
+void _alpm_set_errno(alpm_handle_t *handle, alpm_errno_t err);
 
 #endif /* ALPM_HANDLE_H */
 

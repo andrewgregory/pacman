@@ -374,7 +374,7 @@ static int curl_download_internal(struct dload_payload *payload,
 	/* shortcut to our handle within the payload */
 	alpm_handle_t *handle = payload->handle;
 	CURL *curl = get_libcurl_handle(handle);
-	handle->pm_errno = ALPM_ERR_OK;
+	_alpm_set_errno(handle, ALPM_ERR_OK);
 
 	/* make sure these are NULL */
 	FREE(payload->tempfile_name);
@@ -414,7 +414,7 @@ static int curl_download_internal(struct dload_payload *payload,
 	if(localf == NULL) {
 		localf = fopen(payload->tempfile_name, payload->tempfile_openmode);
 		if(localf == NULL) {
-			handle->pm_errno = ALPM_ERR_RETRIEVE;
+			_alpm_set_errno(handle, ALPM_ERR_RETRIEVE);
 			_alpm_log(handle, ALPM_LOG_ERROR,
 					_("could not open file %s: %s\n"),
 					payload->tempfile_name, strerror(errno));
@@ -467,7 +467,7 @@ static int curl_download_internal(struct dload_payload *payload,
 			if(dload_interrupted == ABORT_OVER_MAXFILESIZE) {
 				payload->curlerr = CURLE_FILESIZE_EXCEEDED;
 				payload->unlink_on_fail = 1;
-				handle->pm_errno = ALPM_ERR_LIBCURL;
+				_alpm_set_errno(handle, ALPM_ERR_LIBCURL);
 				_alpm_log(handle, ALPM_LOG_ERROR,
 						_("failed retrieving file '%s' from %s : expected download size exceeded\n"),
 						payload->remote_name, hostname);
@@ -479,7 +479,7 @@ static int curl_download_internal(struct dload_payload *payload,
 				payload->unlink_on_fail = 1;
 			}
 			if(!payload->errors_ok) {
-				handle->pm_errno = ALPM_ERR_LIBCURL;
+				_alpm_set_errno(handle, ALPM_ERR_LIBCURL);
 				_alpm_log(handle, ALPM_LOG_ERROR,
 						_("failed retrieving file '%s' from %s : %s\n"),
 						payload->remote_name, hostname, error_buffer);
@@ -516,7 +516,7 @@ static int curl_download_internal(struct dload_payload *payload,
 	 * as actually being transferred during curl_easy_perform() */
 	if(!DOUBLE_EQ(remote_size, -1) && !DOUBLE_EQ(bytes_dl, -1) &&
 			!DOUBLE_EQ(bytes_dl, remote_size)) {
-		handle->pm_errno = ALPM_ERR_RETRIEVE;
+		_alpm_set_errno(handle, ALPM_ERR_RETRIEVE);
 		_alpm_log(handle, ALPM_LOG_ERROR, _("%s appears to be truncated: %jd/%jd bytes\n"),
 				payload->remote_name, (intmax_t)bytes_dl, (intmax_t)remote_size);
 		goto cleanup;

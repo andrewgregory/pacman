@@ -244,7 +244,7 @@ static struct archive *_cache_mtree_open(alpm_pkg_t *pkg)
 	}
 
 	if((mtree = archive_read_new()) == NULL) {
-		pkg->handle->pm_errno = ALPM_ERR_LIBARCHIVE;
+		_alpm_set_errno(pkg->handle, ALPM_ERR_LIBARCHIVE);
 		goto error;
 	}
 
@@ -254,7 +254,7 @@ static struct archive *_cache_mtree_open(alpm_pkg_t *pkg)
 	if((r = _alpm_archive_read_open_file(mtree, mtfile, ALPM_BUFFER_SIZE))) {
 		_alpm_log(pkg->handle, ALPM_LOG_ERROR, _("error while reading file %s: %s\n"),
 					mtfile, archive_error_string(mtree));
-		pkg->handle->pm_errno = ALPM_ERR_LIBARCHIVE;
+		_alpm_set_errno(pkg->handle, ALPM_ERR_LIBARCHIVE);
 		_alpm_archive_read_free(mtree);
 		goto error;
 	}
@@ -494,7 +494,7 @@ version_error:
 	closedir(dbdir);
 	db->status &= ~DB_STATUS_VALID;
 	db->status |= DB_STATUS_INVALID;
-	db->handle->pm_errno = ALPM_ERR_DB_VERSION;
+	_alpm_set_errno(db->handle, ALPM_ERR_DB_VERSION);
 	return -1;
 }
 
@@ -1147,7 +1147,7 @@ alpm_db_t *_alpm_db_register_local(alpm_handle_t *handle)
 
 	db = _alpm_db_new("local", 1);
 	if(db == NULL) {
-		handle->pm_errno = ALPM_ERR_DB_CREATE;
+		_alpm_set_errno(handle, ALPM_ERR_DB_CREATE);
 		return NULL;
 	}
 	db->ops = &local_db_ops;

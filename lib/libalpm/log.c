@@ -76,11 +76,11 @@ int SYMEXPORT alpm_logaction(alpm_handle_t *handle, const char *prefix,
 		/* if we couldn't open it, we have an issue */
 		if(fd < 0 || (handle->logstream = fdopen(fd, "a")) == NULL) {
 			if(errno == EACCES) {
-				handle->pm_errno = ALPM_ERR_BADPERMS;
+				_alpm_set_errno(handle, ALPM_ERR_BADPERMS);
 			} else if(errno == ENOENT) {
-				handle->pm_errno = ALPM_ERR_NOT_A_DIR;
+				_alpm_set_errno(handle, ALPM_ERR_NOT_A_DIR);
 			} else {
-				handle->pm_errno = ALPM_ERR_SYSTEM;
+				_alpm_set_errno(handle, ALPM_ERR_SYSTEM);
 			}
 			ret = -1;
 		}

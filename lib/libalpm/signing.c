@@ -165,7 +165,7 @@ static int init_gpgme(alpm_handle_t *handle)
 
 	if(_alpm_access(handle, sigdir, "pubring.gpg", R_OK)
 			|| _alpm_access(handle, sigdir, "trustdb.gpg", R_OK)) {
-		handle->pm_errno = ALPM_ERR_NOT_A_FILE;
+		_alpm_set_errno(handle, ALPM_ERR_NOT_A_FILE);
 		_alpm_log(handle, ALPM_LOG_DEBUG, "Signature verification will fail!\n");
 		_alpm_log(handle, ALPM_LOG_WARNING,
 				_("Public keyring not found; have you run '%s'?\n"),
@@ -520,7 +520,7 @@ int _alpm_gpgme_checksig(alpm_handle_t *handle, const char *path,
 				|| (sigfile = fopen(sigpath, "rb")) == NULL) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "sig path %s could not be opened\n",
 					sigpath);
-			handle->pm_errno = ALPM_ERR_SIG_MISSING;
+			_alpm_set_errno(handle, ALPM_ERR_SIG_MISSING);
 			goto error;
 		}
 	}
@@ -528,7 +528,7 @@ int _alpm_gpgme_checksig(alpm_handle_t *handle, const char *path,
 	/* does the file we are verifying exist? */
 	file = fopen(path, "rb");
 	if(file == NULL) {
-		handle->pm_errno = ALPM_ERR_NOT_A_FILE;
+		_alpm_set_errno(handle, ALPM_ERR_NOT_A_FILE);
 		goto error;
 	}
 
@@ -557,7 +557,7 @@ int _alpm_gpgme_checksig(alpm_handle_t *handle, const char *path,
 		int decode_ret = alpm_decode_signature(base64_sig,
 				&decoded_sigdata, &data_len);
 		if(decode_ret) {
-			handle->pm_errno = ALPM_ERR_SIG_INVALID;
+			_alpm_set_errno(handle, ALPM_ERR_SIG_INVALID);
 			goto gpg_error;
 		}
 		gpg_err = gpgme_data_new_from_mem(&sigdata,
@@ -575,7 +575,7 @@ int _alpm_gpgme_checksig(alpm_handle_t *handle, const char *path,
 	CHECK_ERR();
 	if(!verify_result || !verify_result->signatures) {
 		_alpm_log(handle, ALPM_LOG_DEBUG, "no signatures returned\n");
-		handle->pm_errno = ALPM_ERR_SIG_MISSING;
+		_alpm_set_errno(handle, ALPM_ERR_SIG_MISSING);
 		goto gpg_error;
 	}
 	for(gpgsig = verify_result->signatures, sigcount = 0;
@@ -583,7 +583,7 @@ int _alpm_gpgme_checksig(alpm_handle_t *handle, const char *path,
 	_alpm_log(handle, ALPM_LOG_DEBUG, "%d signatures returned\n", sigcount);
 
 	CALLOC(siglist->results, sigcount, sizeof(alpm_sigresult_t),
-			handle->pm_errno = ALPM_ERR_MEMORY; goto gpg_error);
+			_alpm_set_errno(handle, ALPM_ERR_MEMORY); goto gpg_error);
 	siglist->count = sigcount;
 
 	for(gpgsig = verify_result->signatures, sigcount = 0; gpgsig;
@@ -620,7 +620,7 @@ int _alpm_gpgme_checksig(alpm_handle_t *handle, const char *path,
 			gpg_err = GPG_ERR_NO_ERROR;
 			/* we dupe the fpr in this case since we have no key to point at */
 			STRDUP(result->key.fingerprint, gpgsig->fpr,
-					handle->pm_errno = ALPM_ERR_MEMORY; goto gpg_error);
+					_alpm_set_errno(handle, ALPM_ERR_MEMORY); goto gpg_error);
 		} else {
 			CHECK_ERR();
 			if(key->uids) {
@@ -772,10 +772,10 @@ int _alpm_check_pgp_helper(alpm_handle_t *handle, const char *path,
 			RET_ERR(handle, ALPM_ERR_MEMORY, -1));
 
 	ret = _alpm_gpgme_checksig(handle, path, base64_sig, siglist);
-	if(ret && handle->pm_errno == ALPM_ERR_SIG_MISSING) {
+	if(ret && alpm_errno(handle) == ALPM_ERR_SIG_MISSING) {
 		if(optional) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "missing optional signature\n");
-			handle->pm_errno = ALPM_ERR_OK;
+			_alpm_set_errno(handle, ALPM_ERR_OK);
 			ret = 0;
 		} else {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "missing required signature\n");
@@ -935,7 +935,7 @@ int SYMEXPORT alpm_pkg_check_pgp_signature(alpm_pkg_t *pkg,
 {
 	ASSERT(pkg != NULL, return -1);
 	ASSERT(siglist != NULL, RET_ERR(pkg->handle, ALPM_ERR_WRONG_ARGS, -1));
-	pkg->handle->pm_errno = ALPM_ERR_OK;
+	_alpm_set_errno(pkg->handle, ALPM_ERR_OK);
 
 	return _alpm_gpgme_checksig(pkg->handle, pkg->filename,
 			pkg->base64_sig, siglist);
@@ -952,7 +952,7 @@ int SYMEXPORT alpm_db_check_pgp_signature(alpm_db_t *db,
 {
 	ASSERT(db != NULL, return -1);
 	ASSERT(siglist != NULL, RET_ERR(db->handle, ALPM_ERR_WRONG_ARGS, -1));
-	db->handle->pm_errno = ALPM_ERR_OK;
+	_alpm_set_errno(db->handle, ALPM_ERR_OK);
 
 	return _alpm_gpgme_checksig(db->handle, _alpm_db_path(db), NULL, siglist);
 }

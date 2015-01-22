@@ -763,7 +763,7 @@ int _alpm_remove_packages(alpm_handle_t *handle, int run_ldconfig)
 
 		if(_alpm_remove_single_package(handle, pkg, NULL,
 					targ_count, pkg_count) == -1) {
-			handle->pm_errno = ALPM_ERR_TRANS_ABORT;
+			_alpm_set_errno(handle, ALPM_ERR_TRANS_ABORT);
 			/* running ldconfig at this point could possibly screw system */
 			run_ldconfig = 0;
 			ret = -1;

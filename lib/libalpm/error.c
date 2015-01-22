@@ -29,7 +29,12 @@
 
 alpm_errno_t SYMEXPORT alpm_errno(alpm_handle_t *handle)
 {
+#ifdef HAVE_PTHREAD
+	int *err = pthread_getspecific(handle->tkey_err);
+	return err ? *err : 0;
+#else
 	return handle->pm_errno;
+#endif
 }
 
 const char SYMEXPORT *alpm_strerror(alpm_errno_t err)

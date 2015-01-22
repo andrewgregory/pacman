@@ -478,7 +478,7 @@ static int commit_single_pkg(alpm_handle_t *handle, alpm_pkg_t *newpkg,
 	if(oldpkg) {
 		/* set up fake remove transaction */
 		if(_alpm_remove_single_package(handle, oldpkg, newpkg, 0, 0) == -1) {
-			handle->pm_errno = ALPM_ERR_TRANS_ABORT;
+			_alpm_set_errno(handle, ALPM_ERR_TRANS_ABORT);
 			ret = -1;
 			goto cleanup;
 		}
@@ -490,7 +490,7 @@ static int commit_single_pkg(alpm_handle_t *handle, alpm_pkg_t *newpkg,
 		alpm_logaction(handle, ALPM_CALLER_PREFIX,
 				"error: could not create database entry %s-%s\n",
 				newpkg->name, newpkg->version);
-		handle->pm_errno = ALPM_ERR_DB_WRITE;
+		_alpm_set_errno(handle, ALPM_ERR_DB_WRITE);
 		ret = -1;
 		goto cleanup;
 	}
@@ -601,7 +601,7 @@ static int commit_single_pkg(alpm_handle_t *handle, alpm_pkg_t *newpkg,
 		alpm_logaction(handle, ALPM_CALLER_PREFIX,
 				"error: could not update database entry %s-%s\n",
 				newpkg->name, newpkg->version);
-		handle->pm_errno = ALPM_ERR_DB_WRITE;
+		_alpm_set_errno(handle, ALPM_ERR_DB_WRITE);
 		ret = -1;
 		goto cleanup;
 	}
@@ -678,7 +678,7 @@ int _alpm_upgrade_packages(alpm_handle_t *handle)
 		if(commit_single_pkg(handle, newpkg, pkg_current, pkg_count)) {
 			/* something screwed up on the commit, abort the trans */
 			trans->state = STATE_INTERRUPTED;
-			handle->pm_errno = ALPM_ERR_TRANS_ABORT;
+			_alpm_set_errno(handle, ALPM_ERR_TRANS_ABORT);
 			/* running ldconfig at this point could possibly screw system */
 			skip_ldconfig = 1;
 			ret = -1;

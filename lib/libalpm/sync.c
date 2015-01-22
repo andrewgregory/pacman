@@ -57,7 +57,11 @@ alpm_pkg_t SYMEXPORT *alpm_sync_newversion(alpm_pkg_t *pkg, alpm_list_t *dbs_syn
 	alpm_pkg_t *spkg = NULL;
 
 	ASSERT(pkg != NULL, return NULL);
+<<<<<<< HEAD
 	pkg->handle->pm_errno = ALPM_ERR_OK;
+=======
+	_alpm_set_errno(pkg->handle, ALPM_ERR_OK);
+>>>>>>> make pm_errno thread-local
 
 	for(i = dbs_sync; !spkg && i; i = i->next) {
 		alpm_db_t *db = i->data;
@@ -462,7 +466,7 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 				   transaction. The packages will be removed from the actual
 				   transaction when the transaction packages are replaced with a
 				   dependency-reordered list below */
-				handle->pm_errno = ALPM_ERR_OK;
+				_alpm_set_errno(handle, ALPM_ERR_OK);
 				if(data) {
 					alpm_list_free_inner(*data,
 							(alpm_list_fn_free)alpm_depmissing_free);
@@ -471,7 +475,7 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 				}
 			} else {
 				/* pm_errno was set by resolvedeps, callback may have overwrote it */
-				handle->pm_errno = ALPM_ERR_UNSATISFIED_DEPS;
+				_alpm_set_errno(handle, ALPM_ERR_UNSATISFIED_DEPS);
 				alpm_list_free(resolved);
 				alpm_list_free(unresolvable);
 				ret = -1;
@@ -536,7 +540,7 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 				sync = sync2;
 			} else {
 				_alpm_log(handle, ALPM_LOG_ERROR, _("unresolvable package conflicts detected\n"));
-				handle->pm_errno = ALPM_ERR_CONFLICTING_DEPS;
+				_alpm_set_errno(handle, ALPM_ERR_CONFLICTING_DEPS);
 				ret = -1;
 				if(data) {
 					alpm_conflict_t *newconflict = _alpm_conflict_dup(conflict);
@@ -606,7 +610,7 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 				sync->removes = alpm_list_add(sync->removes, local);
 			} else { /* abort */
 				_alpm_log(handle, ALPM_LOG_ERROR, _("unresolvable package conflicts detected\n"));
-				handle->pm_errno = ALPM_ERR_CONFLICTING_DEPS;
+				_alpm_set_errno(handle, ALPM_ERR_CONFLICTING_DEPS);
 				ret = -1;
 				if(data) {
 					alpm_conflict_t *newconflict = _alpm_conflict_dup(conflict);
@@ -646,7 +650,7 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 		deps = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle->db_local),
 				trans->remove, trans->add, 1);
 		if(deps) {
-			handle->pm_errno = ALPM_ERR_UNSATISFIED_DEPS;
+			_alpm_set_errno(handle, ALPM_ERR_UNSATISFIED_DEPS);
 			ret = -1;
 			if(data) {
 				*data = deps;
@@ -787,7 +791,7 @@ static int apply_deltas(alpm_handle_t *handle)
 				/* one delta failed for this package, cancel the remaining ones */
 				event.type = ALPM_EVENT_DELTA_PATCH_FAILED;
 				EVENT(handle, &event);
-				handle->pm_errno = ALPM_ERR_DLT_PATCHFAILED;
+				_alpm_set_errno(handle, ALPM_ERR_DLT_PATCHFAILED);
 				ret = 1;
 				break;
 			}
@@ -857,7 +861,7 @@ static int validate_deltas(alpm_handle_t *handle, alpm_list_t *deltas)
 			FREE(filepath);
 		}
 		alpm_list_free(errors);
-		handle->pm_errno = ALPM_ERR_DLT_INVALID;
+		_alpm_set_errno(handle, ALPM_ERR_DLT_INVALID);
 		return -1;
 	}
 	return 0;
@@ -887,9 +891,9 @@ static int find_dl_candidates(alpm_db_t *repo, alpm_list_t **files, alpm_list_t 
 			alpm_list_t *delta_path = spkg->delta_path;
 
 			if(!repo->servers) {
-				handle->pm_errno = ALPM_ERR_SERVER_NONE;
+				_alpm_set_errno(handle, ALPM_ERR_SERVER_NONE);
 				_alpm_log(handle, ALPM_LOG_ERROR, "%s: %s\n",
-						alpm_strerror(handle->pm_errno), repo->treename);
+						alpm_strerror(alpm_errno(handle)), repo->treename);
 				return 1;
 			}
 
@@ -1156,7 +1160,7 @@ static int check_validity(alpm_handle_t *handle,
 		if(_alpm_pkg_validate_internal(handle, v.path, v.pkg,
 					v.siglevel, &v.siglist, &v.validation) == -1) {
 			struct validity *invalid;
-			v.error = handle->pm_errno;
+			v.error = alpm_errno(handle);
 			MALLOC(invalid, sizeof(struct validity), return -1);
 			memcpy(invalid, &v, sizeof(struct validity));
 			errors = alpm_list_add(errors, invalid);
@@ -1195,7 +1199,7 @@ static int check_validity(alpm_handle_t *handle,
 		}
 		alpm_list_free(errors);
 
-		if(handle->pm_errno == ALPM_ERR_OK) {
+		if(alpm_errno(handle) == ALPM_ERR_OK) {
 			RET_ERR(handle, ALPM_ERR_PKG_INVALID, -1);
 		}
 		return -1;
@@ -1280,7 +1284,7 @@ static int load_packages(alpm_handle_t *handle, alpm_list_t **data,
 	EVENT(handle, &event);
 
 	if(errors) {
-		if(handle->pm_errno == ALPM_ERR_OK) {
+		if(alpm_errno(handle) == ALPM_ERR_OK) {
 			RET_ERR(handle, ALPM_ERR_PKG_INVALID, -1);
 		}
 		return -1;

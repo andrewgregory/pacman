@@ -759,9 +759,9 @@ static alpm_pkg_t *resolvedep(alpm_handle_t *handle, alpm_depend_t *dep,
 	}
 
 	if(ignored) { /* resolvedeps will override these */
-		handle->pm_errno = ALPM_ERR_PKG_IGNORED;
+		_alpm_set_errno(handle, ALPM_ERR_PKG_IGNORED);
 	} else {
-		handle->pm_errno = ALPM_ERR_PKG_NOT_FOUND;
+		_alpm_set_errno(handle, ALPM_ERR_PKG_NOT_FOUND);
 	}
 	return NULL;
 }
@@ -863,7 +863,7 @@ int _alpm_resolvedeps(alpm_handle_t *handle, alpm_list_t *localpkgs,
 		} else if(resolvedep(handle, missdep, (targ = alpm_list_add(NULL, handle->db_local)), rem, 0)) {
 			alpm_depmissing_free(miss);
 		} else {
-			handle->pm_errno = ALPM_ERR_UNSATISFIED_DEPS;
+			_alpm_set_errno(handle, ALPM_ERR_UNSATISFIED_DEPS);
 			char *missdepstring = alpm_dep_compute_string(missdep);
 			_alpm_log(handle, ALPM_LOG_WARNING,
 					_("cannot resolve \"%s\", a dependency of \"%s\"\n"),
