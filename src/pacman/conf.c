@@ -105,6 +105,7 @@ config_t *config_new(void)
 	newconfig->logmask = ALPM_LOG_ERROR | ALPM_LOG_WARNING;
 	newconfig->configfile = strdup(CONFFILE);
 	newconfig->deltaratio = 0.0;
+	newconfig->threads = 1;
 	if(alpm_capabilities() & ALPM_CAPABILITY_SIGNATURES) {
 		newconfig->siglevel = ALPM_SIG_PACKAGE | ALPM_SIG_PACKAGE_OPTIONAL |
 			ALPM_SIG_DATABASE | ALPM_SIG_DATABASE_OPTIONAL;
@@ -618,14 +619,14 @@ static int _parse_options(const char *key, char *value,
 			}
 
 			threads = strtoul(value, &endptr, 10);
-			if(*endptr != '\0' || threads < 0) {
+			if(*endptr != '\0' || threads < 1 || threads > UINT_MAX) {
 				pm_printf(ALPM_LOG_ERROR,
 						_("config file %s, line %d: invalid value for '%s' : '%s'\n"),
 						file, linenum, "Threads", value);
 				return 1;
 			}
 			config->threads = threads;
-			pm_printf(ALPM_LOG_DEBUG, "config: Threads = %f\n", threads);
+			pm_printf(ALPM_LOG_DEBUG, "config: Threads = %lu\n", threads);
 		} else {
 			pm_printf(ALPM_LOG_WARNING,
 					_("config file %s, line %d: directive '%s' in section '%s' not recognized.\n"),
@@ -834,6 +835,7 @@ static int setup_libalpm(void)
 	alpm_option_set_checkspace(handle, config->checkspace);
 	alpm_option_set_usesyslog(handle, config->usesyslog);
 	alpm_option_set_deltaratio(handle, config->deltaratio);
+	alpm_option_set_thread_count(handle, config->threads);
 
 	alpm_option_set_ignorepkgs(handle, config->ignorepkg);
 	alpm_option_set_ignoregroups(handle, config->ignoregrp);
