@@ -94,7 +94,7 @@ static int dload_progress_cb(void *file, curl_off_t dltotal, curl_off_t dlnow,
 		curl_off_t UNUSED ultotal, curl_off_t UNUSED ulnow)
 {
 	struct dload_payload *payload = (struct dload_payload *)file;
-	off_t current_size, total_size;
+	off_t current_size;
 
 	/* avoid displaying progress bar for redirects with a body */
 	if(payload->respcode >= 300) {
@@ -119,16 +119,24 @@ static int dload_progress_cb(void *file, curl_off_t dltotal, curl_off_t dlnow,
 		return 0;
 	}
 
-	total_size = payload->initial_size + dltotal;
+	if(dltotal < 0) {
+		dltotal = 0;
+	}
 
-	if(dltotal == 0 || payload->prevprogress == total_size) {
+	/* don't notify the callback until we've actually downloaded something */
+	if(dltotal == 0 || dlnow == 0) {
 		return 0;
 	}
 
-	/* initialize the progress bar here to avoid displaying it when
-	 * a repo is up to date and nothing gets downloaded */
+	/* initialize the progress callback here to avoid calling it
+	 * when nothing actually gets downloaded */
 	if(payload->prevprogress == 0) {
 		payload->handle->dlcb(payload->remote_name, 0, dltotal);
+	}
+
+	/* call the final callback elsewhere to ensure it's only called once */
+	if(dlnow == dltotal) {
+		return 0;
 	}
 
 	/* do NOT include initial_size since it wasn't part of the package's
@@ -463,6 +471,22 @@ static int curl_download_internal(struct dload_payload *payload,
 
 	/* perform transfer */
 	payload->curlerr = curl_easy_perform(curl);
+	curl_easy_getinfo(curl, CURLINFO_FILETIME, &remote_time);
+	curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &remote_size);
+	curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &bytes_dl);
+	curl_easy_getinfo(curl, CURLINFO_CONDITION_UNMET, &timecond);
+	curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &effective_url);
+
+	if(payload->prevprogress > 0) {
+		/* if we called the callback, notify it that we're done */
+		off_t xfer = bytes_dl, size = remote_size > 0 ? remote_size : bytes_dl;
+		if(payload->curlerr == CURLE_OK && payload->respcode < 400 && xfer == size) {
+			handle->dlcb(payload->remote_name, xfer, size);
+		} else {
+			handle->dlcb(payload->remote_name, -1, -1);
+		}
+	}
+
 	_alpm_log(handle, ALPM_LOG_DEBUG, "curl returned error %d from transfer\n",
 			payload->curlerr);
 
@@ -518,13 +542,6 @@ static int curl_download_internal(struct dload_payload *payload,
 			}
 			goto cleanup;
 	}
-
-	/* retrieve info about the state of the transfer */
-	curl_easy_getinfo(curl, CURLINFO_FILETIME, &remote_time);
-	curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &remote_size);
-	curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &bytes_dl);
-	curl_easy_getinfo(curl, CURLINFO_CONDITION_UNMET, &timecond);
-	curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &effective_url);
 
 	if(final_url != NULL) {
 		*final_url = effective_url;

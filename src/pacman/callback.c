@@ -645,7 +645,13 @@ void cb_dl_progress(const char *filename, off_t file_xfered, off_t file_total)
 
 	const unsigned short cols = getcols();
 
-	if(config->noprogressbar || cols == 0 || file_total == -1) {
+	if(file_total == -1) {
+		/* an error occurred, move to the next line for the error message */
+		putchar('\n');
+		return;
+	}
+
+	if(config->noprogressbar || cols == 0) {
 		if(file_xfered == 0) {
 			printf(_("downloading %s...\n"), filename);
 			fflush(stdout);
