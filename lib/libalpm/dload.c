@@ -90,8 +90,8 @@ static void inthandler(int UNUSED signum)
 	dload_interrupted = ABORT_SIGINT;
 }
 
-static int dload_progress_cb(void *file, double dltotal, double dlnow,
-		double UNUSED ultotal, double UNUSED ulnow)
+static int dload_progress_cb(void *file, curl_off_t dltotal, curl_off_t dlnow,
+		curl_off_t UNUSED ultotal, curl_off_t UNUSED ulnow)
 {
 	struct dload_payload *payload = (struct dload_payload *)file;
 	off_t current_size, total_size;
@@ -106,7 +106,7 @@ static int dload_progress_cb(void *file, double dltotal, double dlnow,
 		return 1;
 	}
 
-	current_size = payload->initial_size + (off_t)dlnow;
+	current_size = payload->initial_size + dlnow;
 
 	/* is our filesize still under any set limit? */
 	if(payload->max_size && current_size > payload->max_size) {
@@ -119,21 +119,21 @@ static int dload_progress_cb(void *file, double dltotal, double dlnow,
 		return 0;
 	}
 
-	total_size = payload->initial_size + (off_t)dltotal;
+	total_size = payload->initial_size + dltotal;
 
-	if(DOUBLE_EQ(dltotal, 0.0) || payload->prevprogress == total_size) {
+	if(dltotal == 0 || payload->prevprogress == total_size) {
 		return 0;
 	}
 
 	/* initialize the progress bar here to avoid displaying it when
 	 * a repo is up to date and nothing gets downloaded */
 	if(payload->prevprogress == 0) {
-		payload->handle->dlcb(payload->remote_name, 0, (off_t)dltotal);
+		payload->handle->dlcb(payload->remote_name, 0, dltotal);
 	}
 
 	/* do NOT include initial_size since it wasn't part of the package's
 	 * download_size (nor included in the total download size callback) */
-	payload->handle->dlcb(payload->remote_name, (off_t)dlnow, (off_t)dltotal);
+	payload->handle->dlcb(payload->remote_name, dlnow, dltotal);
 
 	payload->prevprogress = current_size;
 
@@ -293,8 +293,8 @@ static void curl_set_handle_opts(struct dload_payload *payload,
 	curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, dload_progress_cb);
-	curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, (void *)payload);
+	curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, dload_progress_cb);
+	curl_easy_setopt(curl, CURLOPT_XFERINFODATA, (void *)payload);
 	curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1L);
 	curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 10L);
 	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, dload_parseheader_cb);
