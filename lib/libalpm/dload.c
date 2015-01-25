@@ -124,7 +124,7 @@ static int dload_progress_cb(void *file, curl_off_t dltotal, curl_off_t dlnow,
 	}
 
 	/* don't notify the callback until we've actually downloaded something */
-	if(dltotal == 0 || dlnow == 0) {
+	if(dlnow == 0) {
 		return 0;
 	}
 

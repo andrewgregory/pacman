@@ -94,6 +94,33 @@ static int64_t get_update_timediff(int first_call)
 	return retval;
 }
 
+static void fill_progress_step(const int step, const int proglen)
+{
+	/* 8 = 1 space + 1 [ + 1 ] + 5 for percent */
+	const int hashlen = proglen - 8;
+
+	if(hashlen > 0) {
+		int i, pos = step % hashlen, len = hashlen / 10 + 1;
+		fputs(" [", stdout);
+		for(i = 0; i < hashlen; i++) {
+			if(i >= pos && i < pos + len) {
+				putchar('#');
+			} else {
+				putchar('-');
+			}
+		}
+		putchar(']');
+	}
+	/* print display percent after progress bar */
+	/* 5 = 1 space + 3 digits + 1 % */
+	if(proglen >= 5) {
+		fputs(" ???%", stdout);
+	}
+	putchar('\r');
+
+	fflush(stdout);
+}
+
 /* refactored from cb_trans_progress */
 static void fill_progress(const int bar_percent, const int disp_percent,
 		const int proglen)
@@ -628,6 +655,7 @@ void cb_dl_progress(const char *filename, off_t file_xfered, off_t file_total)
 	static double rate_last;
 	static off_t xfered_last;
 	static int64_t initial_time = 0;
+	static int step = 0;
 	int infolen;
 	int filenamelen;
 	char *fname, *p;
@@ -641,7 +669,7 @@ void cb_dl_progress(const char *filename, off_t file_xfered, off_t file_total)
 	unsigned int eta_h = 0, eta_m = 0, eta_s = 0;
 	double rate_human, xfered_human;
 	const char *rate_label, *xfered_label;
-	int file_percent = 0, total_percent = 0;
+	int total_percent = 0;
 
 	const unsigned short cols = getcols();
 
@@ -684,7 +712,7 @@ void cb_dl_progress(const char *filename, off_t file_xfered, off_t file_total)
 	}
 
 	/* bogus values : stop here */
-	if(xfered > total || xfered < 0) {
+	if((total && xfered > total) || xfered < 0) {
 		return;
 	}
 
@@ -699,6 +727,7 @@ void cb_dl_progress(const char *filename, off_t file_xfered, off_t file_total)
 			rate_last = 0.0;
 			get_update_timediff(1);
 		}
+		step = 0;
 	} else if(file_xfered == file_total) {
 		/* compute final values */
 		int64_t timediff = get_time_ms() - initial_time;
@@ -729,15 +758,8 @@ void cb_dl_progress(const char *filename, off_t file_xfered, off_t file_total)
 		xfered_last = xfered;
 	}
 
-	if(file_total) {
-		file_percent = (file_xfered * 100) / file_total;
-	} else {
-		file_percent = 100;
-	}
-
 	if(totaldownload) {
-		total_percent = ((list_xfered + file_xfered) * 100) /
-			list_total;
+		total_percent = ((list_xfered + file_xfered) * 100) / list_total;
 
 		/* if we are at the end, add the completed file to list_xfered */
 		if(file_xfered == file_total) {
@@ -817,21 +839,26 @@ void cb_dl_progress(const char *filename, off_t file_xfered, off_t file_total)
 		printf("%6.1f %3s  %4.f%c/s ",
 				xfered_human, xfered_label, rate_human, rate_label[0]);
 	}
-	if(eta_h == 0) {
-		printf("%02u:%02u", eta_m, eta_s);
-	} else if(eta_h < 100) {
-		printf("%02u:%02u:%02u", eta_h, eta_m, eta_s);
-	} else {
+	if(file_total == 0 || eta_h >= 100) {
 		fputs("--:--", stdout);
+	} else if(eta_h == 0) {
+		printf("%02u:%02u", eta_m, eta_s);
+	} else {
+		printf("%02u:%02u:%02u", eta_h, eta_m, eta_s);
 	}
 
 	free(fname);
 	free(wcfname);
 
-	if(totaldownload) {
-		fill_progress(file_percent, total_percent, cols - infolen);
+	if(file_total == 0) {
+		fill_progress_step(step++, cols - infolen);
 	} else {
-		fill_progress(file_percent, file_percent, cols - infolen);
+		int file_percent = (file_xfered * 100) / file_total;
+		if(totaldownload) {
+			fill_progress(file_percent, total_percent, cols - infolen);
+		} else {
+			fill_progress(file_percent, file_percent, cols - infolen);
+		}
 	}
 	return;
 }
