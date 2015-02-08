@@ -32,6 +32,7 @@ TESTS =  test/scripts/parseopts_test.sh \
 				 test/scripts/pacman-db-upgrade-v9.py \
 				 test/util/pacsorttest.sh \
 				 test/util/vercmptest.sh \
+				 test/alpm/alpm_add_remove.t \
 				 test/alpm/alpm_list.t \
 				 test/alpm/alpm_filelist.t \
 				 test/alpm/alpm_initialize.t

@@ -1,4 +1,5 @@
 check_PROGRAMS = \
+	alpm_add_remove.t \
 	alpm_list.t \
 	alpm_filelist.t \
 	alpm_initialize.t
