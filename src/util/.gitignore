@@ -2,6 +2,8 @@
 .libs
 cleanupdelta
 cleanupdelta.exe
+pacman-conf
+pacman-conf.exe
 testpkg
 testpkg.exe
 vercmp
