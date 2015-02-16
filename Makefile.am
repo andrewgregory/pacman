@@ -34,6 +34,7 @@ TESTS =  test/scripts/parseopts_test.sh \
 				 test/util/vercmptest.sh \
 				 test/alpm/alpm_add_remove.t \
 				 test/alpm/alpm_list.t \
+				 test/alpm/cached_part_file.t \
 				 test/alpm/alpm_filelist.t \
 				 test/alpm/alpm_initialize.t
 include $(top_srcdir)/test/pacman/tests/TESTS
