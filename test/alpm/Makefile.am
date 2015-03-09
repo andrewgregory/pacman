@@ -2,6 +2,8 @@ check_PROGRAMS = \
 	cached_part_file.t \
 	alpm_add_remove.t \
 	alpm_list.t \
+	alpm_list_append.t \
+	alpm_list_shift.t \
 	alpm_filelist.t \
 	alpm_initialize.t
 
