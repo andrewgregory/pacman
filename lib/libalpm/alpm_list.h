@@ -70,6 +70,7 @@ alpm_list_t *alpm_list_strdup(const alpm_list_t *list);
 alpm_list_t *alpm_list_copy(const alpm_list_t *list);
 alpm_list_t *alpm_list_copy_data(const alpm_list_t *list, size_t size);
 alpm_list_t *alpm_list_reverse(alpm_list_t *list);
+void *alpm_list_shift(alpm_list_t **list);
 
 /* item accessors */
 alpm_list_t *alpm_list_nth(const alpm_list_t *list, size_t n);

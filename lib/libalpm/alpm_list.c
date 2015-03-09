@@ -130,6 +130,31 @@ alpm_list_t SYMEXPORT *alpm_list_append(alpm_list_t **list, void *data)
 }
 
 /**
+ * @brief Shift an item off the head of a list.
+ *
+ * @param list the list shift from
+ *
+ * @return the shifted item's data
+ */
+void SYMEXPORT *alpm_list_shift(alpm_list_t **list)
+{
+  alpm_list_t *lp = *list;
+  void *data;
+
+  if(lp == NULL) {
+	  return NULL;
+  }
+
+  data = lp->data;
+  if(lp->next) {
+	  lp->next->prev = lp->prev;
+  }
+  *list = lp->next;
+  free(lp);
+  return data;
+}
+
+/**
  * @brief Add items to a list in sorted order.
  *
  * @param list the list to add to
