@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <errno.h>
+#include <syslog.h>
 
 /* libalpm */
 #include "log.h"
@@ -33,6 +34,29 @@
  * @{
  */
 
+static int _alpm_log_open(alpm_handle_t *handle)
+{
+	int fd;
+	do {
+		fd = open(handle->logfile, O_WRONLY | O_APPEND | O_CREAT | O_CLOEXEC, 0644);
+	} while(fd == -1 && errno == EINTR);
+	if(fd >= 0) {
+		handle->logstream = fdopen(fd, "a");
+	}
+	/* if we couldn't open it, we have an issue */
+	if(fd < 0 || handle->logstream == NULL) {
+		if(errno == EACCES) {
+			handle->pm_errno = ALPM_ERR_BADPERMS;
+		} else if(errno == ENOENT) {
+			handle->pm_errno = ALPM_ERR_NOT_A_DIR;
+		} else {
+			handle->pm_errno = ALPM_ERR_SYSTEM;
+		}
+		return -1;
+	}
+	return 0;
+}
+
 /** A printf-like function for logging.
  * @param handle the context handle
  * @param prefix caller-specific prefix for the log
@@ -42,36 +66,38 @@
 int SYMEXPORT alpm_logaction(alpm_handle_t *handle, const char *prefix,
 		const char *fmt, ...)
 {
-	int ret;
+	int ret = 0;
 	va_list args;
 
 	ASSERT(handle != NULL, return -1);
+	va_start(args, fmt);
 
-	/* check if the logstream is open already, opening it if needed */
-	if(handle->logstream == NULL) {
-		int fd;
-		do {
-			fd = open(handle->logfile, O_WRONLY | O_APPEND | O_CREAT | O_CLOEXEC,
-					0644);
-		} while(fd == -1 && errno == EINTR);
-		if(fd >= 0) {
-			handle->logstream = fdopen(fd, "a");
-		}
-		/* if we couldn't open it, we have an issue */
-		if(fd < 0 || handle->logstream == NULL) {
-			if(errno == EACCES) {
-				handle->pm_errno = ALPM_ERR_BADPERMS;
-			} else if(errno == ENOENT) {
-				handle->pm_errno = ALPM_ERR_NOT_A_DIR;
-			} else {
-				handle->pm_errno = ALPM_ERR_SYSTEM;
-			}
-			return -1;
-		}
+	if(handle->usesyslog) {
+		/* we can't use a va_list more than once, so we need to copy it
+		 * so we can use the original when calling vfprintf below. */
+		va_list args_syslog;
+		va_copy(args_syslog, args);
+		vsyslog(LOG_WARNING, fmt, args_syslog);
+		va_end(args_syslog);
 	}
 
-	va_start(args, fmt);
-	ret = _alpm_logaction(handle, prefix, fmt, args);
+	if(handle->logfile) {
+		/* check if the logstream is open already, opening it if needed */
+		if(handle->logstream || _alpm_log_open(handle) == 0) {
+			time_t t = time(NULL);
+			struct tm tm;
+			localtime_r(&t, &tm);
+
+			/* Use ISO-8601 date format */
+			fprintf(handle->logstream, "[%04d-%02d-%02d %02d:%02d] [%s] ",
+					tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+					tm.tm_hour, tm.tm_min, prefix);
+			vfprintf(handle->logstream, fmt, args);
+			fflush(handle->logstream);
+		} else {
+			ret = -1;
+		}
+	}
 	va_end(args);
 
 	return ret;
