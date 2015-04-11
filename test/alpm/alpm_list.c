@@ -449,7 +449,6 @@ void check_alpm_list_to_array(void)
     alpm_list_free(list);
 }
 
-
 void check_alpm_list_find(void)
 {
     char *expected[3] = {"2", "3", "1"};

@@ -25,15 +25,17 @@
 
 int main(int argc, char **argv)
 {
-	char c[PATH_MAX] = "/tmp/pactest-surely-this-path-does-not-exist-XXXXXX";
 	alpm_errno_t err;
 	pt_env_t *pt;
+	char *c;
 	
 	tap_plan(29);
 
-	mktemp(c);
+	pt = pt_new(NULL);
+	c = pt_path(pt, "this-path-does-not-exist");
 	tap_ok(alpm_initialize(c, c, &err) == NULL, "non-existent path");
 	tap_is_int(err, ALPM_ERR_NOT_A_DIR, "non-existent path error");
+	pt_cleanup(pt);
 
 	pt = pt_new(NULL);
 	tap_ok(pt_initialize(pt, &err) != NULL, "empty dbpath");

@@ -173,7 +173,6 @@ void tap_diag(const char *message, ...)
     _TAP_VPRINT_MSG(stream, message);
     fputc('\n', stream);
     fflush(stream);
-
 }
 
 void tap_note(const char *message, ...)
