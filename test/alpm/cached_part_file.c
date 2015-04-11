@@ -16,11 +16,13 @@ int main(void) {
     alpm_list_t *data = NULL;
 
     ASSERT(pt = pt_new(NULL));
-    ASSERT(db = pt_db_new(pt, "sync"));
+
     ASSERT(pkg = pt_pkg_new(pt, "foo", "1-1"));
-    pkg->filename = strdup("foo.pkg.tar");
-    db->pkgs = alpm_list_add(db->pkgs, pkg);
+    ASSERT(pkg->filename = strdup("foo.pkg.tar"));
     ASSERT(pt_pkg_writeat(pt->rootfd, "tmp/foo.pkg.tar.part", pkg) == 0);
+
+    ASSERT(db = pt_db_new(pt, "sync"));
+    ASSERT(pt_db_add_pkg(db, pkg));
     ASSERT(pt_install_db(pt, db) == 0);
 
     ASSERT(h = alpm_initialize(pt->root, pt->dbpath, NULL));
