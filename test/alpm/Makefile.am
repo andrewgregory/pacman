@@ -1,11 +1,12 @@
 check_PROGRAMS = \
-	cached_part_file.t \
 	alpm_add_remove.t \
+	alpm_filelist.t \
+	alpm_initialize.t \
 	alpm_list.t \
 	alpm_list_append.t \
 	alpm_list_shift.t \
-	alpm_filelist.t \
-	alpm_initialize.t
+	cached_part_file.t \
+	remote_sync.t
 
 noinst_PROGRAMS = $(check_PROGRAMS)
 
@@ -17,7 +18,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/lib/libalpm \
 	-DLOCALEDIR=\"@localedir@\"
 
-AM_CFLAGS = -D_GNU_SOURCE
+AM_CFLAGS = -g -D_GNU_SOURCE -pthread
 
 LDADD = $(LTLIBINTL) $(top_builddir)/lib/libalpm/.libs/libalpm.la
 

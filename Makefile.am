@@ -36,6 +36,7 @@ TESTS =  test/scripts/parseopts_test.sh \
 				 test/alpm/alpm_list.t \
 				 test/alpm/cached_part_file.t \
 				 test/alpm/alpm_filelist.t \
+				 test/alpm/remote_sync.t \
 				 test/alpm/alpm_initialize.t
 include $(top_srcdir)/test/pacman/tests/TESTS
 
