@@ -8,10 +8,14 @@ check_PROGRAMS = \
 	cached_part_file.t \
 	remote_sync.t
 
+check_SCRIPTS = ptrun
+
 noinst_PROGRAMS = $(check_PROGRAMS)
+noinst_SCRIPTS = $(check_SCRIPTS)
 
 EXTRA_DIST = \
-	$(check_PROGRAMS)
+	$(check_PROGRAMS) \
+	$(check_SCRIPTS)
 
 AM_CPPFLAGS = \
 	-imacros $(top_builddir)/config.h \
