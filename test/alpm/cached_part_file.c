@@ -16,7 +16,7 @@ int main(void) {
 	ASSERT(pt = pt_new(NULL));
 
 	ASSERT(pkg = pt_pkg_new(pt, "foo", "1-1"));
-	ASSERT(pkg->filename = strdup("foo.pkg.tar"));
+	ASSERT((free(pkg->filename), pkg->filename = strdup("foo.pkg.tar")));
 	ASSERT(pt_pkg_writeat(pt->rootfd, "tmp/foo.pkg.tar.part", pkg) == 0);
 
 	ASSERT(db = pt_db_new(pt, "sync"));

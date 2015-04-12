@@ -41,7 +41,7 @@ TESTS =  test/scripts/parseopts_test.sh \
 include $(top_srcdir)/test/pacman/tests/TESTS
 
 TEST_SUITE_LOG = test/test-suite.log
-TEST_EXTENSIONS = .py
+TEST_EXTENSIONS = .py .t
 AM_TESTS_ENVIRONMENT = \
 	PMTEST_UTIL_DIR=$(top_builddir)/src/util/; export PMTEST_UTIL_DIR; \
 	PMTEST_SCRIPT_DIR=$(top_builddir)/scripts/; export PMTEST_SCRIPT_DIR; \
@@ -56,6 +56,10 @@ AM_PY_LOG_FLAGS = \
 		--ldconfig $(LDCONFIG) \
 		--bindir $(top_builddir)/src/pacman \
 		--bindir $(top_builddir)/scripts
+T_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+								 $(top_srcdir)/build-aux/tap-driver.sh
+T_LOG_COMPILER = $(top_srcdir)/test/alpm/ptrun
+AM_T_LOG_FLAGS = -rc
 
 # create the pacman DB and cache directories upon install
 install-data-local:
