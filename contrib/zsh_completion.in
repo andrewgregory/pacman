@@ -550,6 +550,7 @@ _makepkg_shortopts=(
 	'-i[Install package after successful build]'
 	'-A[Ignore incomplete arch field in PKGBUILD]'
 	'-c[Clean up work files after build]'
+	'-C[Remove $srcdir/ dir before building the package]'
 	'-d[Skip all dependency checks]'
 	'-e[Do not extract source files (use existing src/ dir)]'
 	'-f[Overwrite existing package]'
@@ -572,6 +573,7 @@ _makepkg_action_none(){
 _makepkg_longopts=(
 	'--ignorearch[Ignore incomplete arch field in PKGBUILD]'
 	'--clean[Clean up work files after build]'
+	'--cleanbuild[Remove $srcdir/ dir before building the package]'
 	'--nodeps[Skip all dependency checks]'
 	'--noextract[Do not extract source files (use existing src/ dir)]'
 	'--force[Overwrite existing package]'
@@ -594,6 +596,7 @@ _makepkg_longopts=(
 	'--nocheck[Do not run the check() function in the PKGBUILD]'
 	'--noprepare[Do not run the prepare() function in the PKGBUILD]'
 	'--nosign[Do not create a signature for the package]'
+	'--packagelist[Only list packages that would be produced, without PKGEXT]'
 	'--pkg[Only build listed packages from a split package]'
 	'--sign[Sign the resulting package with gpg]'
 	'--skipchecksums[Do not verify checksums of the source files]'
