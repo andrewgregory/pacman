@@ -61,6 +61,11 @@ T_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
 T_LOG_COMPILER = $(top_srcdir)/test/alpm/ptrun
 AM_T_LOG_FLAGS = -rc
 
+memcheck: PY_LOG_FLAGS += --valgrind
+memcheck: T_LOG_FLAGS += -v
+memcheck:
+	$(MAKE) VERBOSE=1 PY_LOG_FLAGS="$(PY_LOG_FLAGS)" T_LOG_FLAGS="$(T_LOG_FLAGS)" check
+
 # create the pacman DB and cache directories upon install
 install-data-local:
 	for dir in "$(DESTDIR)$(localstatedir)/lib/pacman" "$(DESTDIR)$(localstatedir)/cache/pacman/pkg"; do \
