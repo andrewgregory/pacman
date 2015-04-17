@@ -110,7 +110,7 @@ class pmtest(object):
             raise IOError("file %s does not exist!" % self.name)
 
     def generate(self, pacman):
-        tap.diag("==> Generating test environment")
+        vprint("==> Generating test environment")
 
         # Cleanup leftover files from a previous test session
         if os.path.isdir(self.root):
@@ -209,7 +209,7 @@ class pmtest(object):
             tap.bail("\tERROR: another pacman session is on-going -- skipping")
             return
 
-        tap.diag("==> Running test")
+        vprint("==> Running test")
         vprint("\tpacman %s" % self.args)
 
         cmd = []

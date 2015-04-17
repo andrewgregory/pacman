@@ -19,7 +19,7 @@ import os
 
 import pmtest
 import tap
-
+from util import vprint
 
 class pmenv(object):
     """Environment object
@@ -60,13 +60,13 @@ class pmenv(object):
         tap.plan(len(self.testcases))
         for testcase in self.testcases:
             t = pmtest.pmtest(testcase, self.root)
-            tap.diag("Running '%s'" % t.testname)
+            vprint("Running '%s'" % t.testname)
 
             t.load()
             t.generate(self.pacman)
             t.run(self.pacman)
 
-            tap.diag("==> Checking rules")
+            vprint("==> Checking rules")
             tap.todo = t.expectfailure
             tap.subtest(lambda: t.check(), t.description)
 
