@@ -26,18 +26,19 @@ dist_pkgdata_DATA = \
 $(top_srcdir)/test/pacman/tests/TESTS: $(wildcard test/pacman/tests/*.py)
 	@printf "TESTS += %s\n" $^ | LC_ALL=C sort -u > "$@"
 
-TESTS =  test/scripts/parseopts_test.sh \
-				 test/scripts/human_to_size_test.sh \
-				 test/scripts/makepkg-template_test.sh \
-				 test/scripts/pacman-db-upgrade-v9.py \
-				 test/util/pacsorttest.sh \
-				 test/util/vercmptest.sh \
-				 test/alpm/alpm_add_remove.t \
-				 test/alpm/alpm_list.t \
-				 test/alpm/cached_part_file.t \
-				 test/alpm/alpm_filelist.t \
-				 test/alpm/remote_sync.t \
-				 test/alpm/alpm_initialize.t
+TESTS =  \
+		 test/alpm/t/alpm_add_remove.t \
+		 test/alpm/t/alpm_filelist.t \
+		 test/alpm/t/alpm_initialize.t \
+		 test/alpm/t/alpm_list.t \
+		 test/alpm/t/cached_part_file.t \
+		 test/alpm/t/remote_sync.t \
+		 test/scripts/human_to_size_test.sh \
+		 test/scripts/makepkg-template_test.sh \
+		 test/scripts/pacman-db-upgrade-v9.py \
+		 test/scripts/parseopts_test.sh \
+		 test/util/pacsorttest.sh \
+		 test/util/vercmptest.sh
 include $(top_srcdir)/test/pacman/tests/TESTS
 
 TEST_SUITE_LOG = test/test-suite.log

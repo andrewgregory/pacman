@@ -507,6 +507,7 @@ scripts/po/Makefile.in
 doc/Makefile
 etc/Makefile
 test/alpm/Makefile
+test/alpm/t/Makefile
 test/pacman/Makefile
 test/pacman/tests/Makefile
 test/scripts/Makefile

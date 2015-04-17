@@ -1,5 +1,4 @@
-#include "alpm_list.h"
-#include "tap.h"
+#include "../alpmtest.h"
 
 int main(void) {
 	alpm_list_t *l = NULL, *n, *s;
@@ -25,6 +24,8 @@ int main(void) {
 	tap_ok(n->next == NULL, NULL);
 	tap_ok(n->prev == l, NULL);
 	tap_ok(n->data == data2, NULL);
+
+    alpm_list_free(l);
 
 	return tap_finish();
 }

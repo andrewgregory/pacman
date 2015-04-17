@@ -1,5 +1,4 @@
-#include "alpm.h"
-#include "tap.h"
+#include "../alpmtest.h"
 
 #if 0 /* TODO: export filelist_difference and filelist_intersection */
 

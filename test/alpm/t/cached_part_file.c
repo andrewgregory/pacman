@@ -1,9 +1,6 @@
-#include "pactest.c"
-#include "tap.h"
+#include "../alpmtest.h"
 
 /* install a package with a fully downloaded .part file in the cache */
-
-#define ASSERT(x) if(!(x)) { tap_bail("ASSERT FAILED: '%s'", #x); pt_cleanup(pt); exit(1); }
 
 int main(void) {
 	pt_env_t *pt;

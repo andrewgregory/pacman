@@ -1,5 +1,4 @@
-#include "alpm.h"
-#include "tap.h"
+#include "../alpmtest.h"
 
 #define CHECK_LIST_STR(...) check_list_str(__FILE__, __LINE__, __VA_ARGS__)
 int check_list_str(const char *file, int lineno,

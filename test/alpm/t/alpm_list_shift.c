@@ -1,5 +1,4 @@
-#include "alpm_list.h"
-#include "tap.h"
+#include "../alpmtest.h"
 
 int main(void)
 {

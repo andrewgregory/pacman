@@ -1,10 +1,6 @@
-#include <alpm.h>
-#include "pactest.c"
-#include "tap.h"
+#include "../alpmtest.h"
 
 /* install and them remove a package with a single handle */
-
-#define ASSERT(x) if(!(x)) { tap_bail("ASSERT FAILED: '%s'", #x); pt_cleanup(pt); exit(1); }
 
 int main(void) {
     pt_env_t *pt;

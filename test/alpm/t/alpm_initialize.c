@@ -1,6 +1,4 @@
-#include <alpm.h>
-#include "tap.c"
-#include "pactest.c"
+#include "../alpmtest.h"
 
 #define DBVERPATH "var/lib/pacman/local/ALPM_DB_VERSION"
 

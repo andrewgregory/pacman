@@ -1,17 +1,10 @@
+#include "../alpmtest.h"
+
 #ifndef HAVE_PTHREAD
 
-#include "tap.h"
-#include "pactest.c"
-#include "ptserve.c"
+#include "../ptserve.c"
 
 /* sync a package from a "remote" repository */
-
-#define ASSERTC(x) \
-    if(!(x)) { \
-        tap_bail("ASSERT FAILED %s line %d: '%s'", __FILE__, __LINE__, #x); \
-        cleanup(); \
-        exit(1); \
-    }
 
 ptserve_t *ptserve = NULL;
 pt_env_t *pt = NULL;
@@ -63,8 +56,6 @@ int main(void) {
 }
 
 #else
-
-#include "tap.h"
 
 int main(void) {
     tap_skip_all("pthread is required for ptserve");
