@@ -1,0 +1,96 @@
+Running Tests
+=============
+
+Tests are normally run using `make check` from the project root.  Individual
+tests are located under 't/' and can be run directly.  `ptrun` is a wrapper
+script provided as a convenience for modifying how tests are run (using
+fakeroot, fakechroot, valgrind, etc.).  `prove` (part of perl) can be used to
+run groups of test with appropriate defaults.  In order to modify the arguments
+passed to `ptrun` use `prove --exec='./ptrun <options>'`.  To run all alpm
+tests run `prove` without any test names.  See prove(1) for more details.
+
+Requirements
+------------
+
+All requirements are optional unless otherwise noted.  Tests that depend on any
+missing requirements will be skipped.
+
+* pthreads
+* fakechroot
+* fakeroot
+
+Writing Tests
+=============
+
+Libraries
+---------
+
+Tests should `#include "../alpmtest.h"`.  This will bring in libalpm,
+pactest.c, tap.c, and stdio libraries as well as project-specific testing
+functions.
+
+Project-Specific Functions
+++++++++++++++++++++++++++
+
+ASSERT(x)/ASSERTC(x) - macros to run the provided code and exits on failure.
+ASSERTC additionally calls `cleanup()` before exiting.
+
+TAPX_BAIL(fmt, args) - `tap_bail` wrapper that exits with an appropriate
+status.
+
+Test Naming
+-----------
+
+Tests designed to check a particular function or data type under multiple
+conditions should be named after the function or data type being tested (e.g.
+`alpm_filelist.c`).  Otherwise, tests should be named according to the
+particular condition being tested, avoiding an `alpm` prefix if possible (e.g.
+`cached_part_file.c`).
+
+Test Initialization
+-------------------
+
+Any functions called during test setup that could fail should be wrapped in
+either an `ASSERT` or `ASSERTC`.
+
+Any calls that could fail should be wrapped in either an `ASSERT`/`ASSERTC` or
+a `tap_*` function.
+
+Do not rely on pactest.c default settings.  If a test requires a particular
+option, set it manually in the test.
+
+If a test program is being run in an environment where it is impossible for the
+tests to properly run (e.g. due to insufficient permissions or missing
+features) the test should be skipped using `tap_skip_all` and return 0.  Tests
+which should be able to run but fail to should bail out and return 99.  In
+particular, tests which rely on install scriptlets or ldconfig should check for
+`chroot` permissions and tests which rely on setting file ownership should
+check `getuid` before running.
+
+Test Cleanup
+------------
+
+Tests should ensure that all memory is freed after a successful run.  Memory
+leaks are acceptable if the test fails, but any `pt_env_t` or `pt_serve_t`
+resources must be freed regardless of test failure.  Tests that need to perform
+cleanup before exiting should define a function with the signature:
+`void cleanup(void);` and use `ASSERTC` in place of `ASSERT`.
+
+Return Values
+-------------
+
+ 0   - success or test skipped (returned by `tap_finish`)
+ 1   - failed test(s) or bad/missing test plan (returned by `tap_finish`)
+ 77  - reserved*
+ 99  - hard error** (set by `ASSERT`/`ASSERTC`)
+ 123 - valgrind error (set by ptrun)
+
+* Automake uses an exit status of 77 for simple tests to indicate that a test
+  was skipped.  For TAP-based tests an exit status of 77 counts as failure, so
+  skipped tests should call `tap_skip_all` and return 0.  Avoiding 77 as an
+  exit status prevents prevents confusion between a failed or skipped test if
+  a test is accidentally run as a simple test.
+
+** For compatibility with Automake's simple test runner.
+
+.. vim: set ft=rst:
