@@ -1,4 +1,5 @@
 #include "tap.c"
+#include <alpm_list.h>
 
 #include <stdlib.h>
 
