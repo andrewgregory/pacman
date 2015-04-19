@@ -6,6 +6,7 @@ check_PROGRAMS = \
 	alpm_list_append.t \
 	alpm_list_shift.t \
 	cached_part_file.t \
+	part_file_in_secondary_cache.t \
 	remote_sync.t
 
 noinst_PROGRAMS = $(check_PROGRAMS)

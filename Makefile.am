@@ -32,6 +32,7 @@ TESTS =  \
 		 test/alpm/t/alpm_initialize.t \
 		 test/alpm/t/alpm_list.t \
 		 test/alpm/t/cached_part_file.t \
+		 test/alpm/t/part_file_in_secondary_cache.t \
 		 test/alpm/t/remote_sync.t \
 		 test/scripts/human_to_size_test.sh \
 		 test/scripts/makepkg-template_test.sh \
