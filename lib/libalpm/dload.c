@@ -96,6 +96,8 @@ static int dload_progress_cb(void *file, curl_off_t dltotal, curl_off_t dlnow,
 	struct dload_payload *payload = (struct dload_payload *)file;
 	off_t current_size, total_size;
 
+	fprintf(stderr, "curl callback called for '%s' with now: %ld total: %ld\n", payload->remote_name, dlnow, dltotal);
+
 	/* avoid displaying progress bar for redirects with a body */
 	if(payload->respcode >= 300) {
 		return 0;
@@ -134,14 +136,18 @@ static int dload_progress_cb(void *file, curl_off_t dltotal, curl_off_t dlnow,
 	 * x {x>0}, x: download complete
 	 * x {x>0, x<y}, y {y > 0}: download progress, expected total is known */
 	if(current_size == total_size) {
+		fprintf(stderr, "calling frontend callback with now: %ld total: %ld\n", (off_t)dlnow, (off_t)dltotal);
 		payload->handle->dlcb(payload->remote_name, dlnow, dltotal);
 	} else if(!payload->prevprogress) {
+		fprintf(stderr, "calling frontend callback with now: %ld total: %ld\n", (off_t)0, (off_t)-1);
 		payload->handle->dlcb(payload->remote_name, 0, -1);
 	} else if(payload->prevprogress == current_size) {
+		fprintf(stderr, "calling frontend callback with now: %ld total: %ld\n", (off_t)0, (off_t)0);
 		payload->handle->dlcb(payload->remote_name, 0, 0);
 	} else {
 	/* do NOT include initial_size since it wasn't part of the package's
 	 * download_size (nor included in the total download size callback) */
+		fprintf(stderr, "calling frontend callback with now: %ld total: %ld\n", (off_t)dlnow, (off_t)dltotal);
 		payload->handle->dlcb(payload->remote_name, dlnow, dltotal);
 	}
 
@@ -256,6 +262,7 @@ static void curl_set_handle_opts(struct dload_payload *payload,
 	/* the curl_easy handle is initialized with the alpm handle, so we only need
 	 * to reset the handle's parameters for each time it's used. */
 	curl_easy_reset(curl);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 	curl_easy_setopt(curl, CURLOPT_URL, payload->fileurl);
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error_buffer);
 	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
