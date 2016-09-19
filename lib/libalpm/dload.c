@@ -317,6 +317,7 @@ static void curl_set_handle_opts(CURL *curl, struct dload_payload *payload)
 	/* the curl_easy handle is initialized with the alpm handle, so we only need
 	 * to reset the handle's parameters for each time it's used. */
 	curl_easy_reset(curl);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 	curl_easy_setopt(curl, CURLOPT_URL, payload->fileurl);
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, payload->error_buffer);
 	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
