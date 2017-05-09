@@ -161,7 +161,8 @@ static int query_fileowner(alpm_list_t *targets)
 		size_t len, is_dir;
 		unsigned int found = 0;
 
-		if((filename = strdup(t->data)) == NULL) {
+		filename = strdup(t->data);
+		if(filename == NULL || strcmp(filename, "") == 0) {
 			goto targcleanup;
 		}
 
