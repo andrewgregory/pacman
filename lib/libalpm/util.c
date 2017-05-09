@@ -268,6 +268,7 @@ int _alpm_open_archive(alpm_handle_t *handle, const char *path,
 	if(archive_read_open_fd(*archive, fd, bufsize) != ARCHIVE_OK) {
 		_alpm_log(handle, ALPM_LOG_ERROR, _("could not open file %s: %s\n"),
 				path, archive_error_string(*archive));
+		error = ALPM_ERR_DB_INVALID;
 		goto error;
 	}
 
