@@ -486,7 +486,7 @@ static int sync_db_populate(alpm_db_t *db)
 	fd = _alpm_open_archive(db->handle, dbpath, &buf,
 			&archive, ALPM_ERR_DB_OPEN);
 	if(fd < 0) {
-		if(db->handle->pm_errno == ALPM_ERR_DB_INVALID) {
+		if(alpm_errno(db->handle) == ALPM_ERR_DB_INVALID) {
 			db->status &= DB_STATUS_INVALID;
 		}
 		return -1;
@@ -522,7 +522,7 @@ static int sync_db_populate(alpm_db_t *db)
 		_alpm_log(db->handle, ALPM_LOG_ERROR, _("could not read db '%s' (%s)\n"),
 				db->treename, archive_error_string(archive));
 		_alpm_db_free_pkgcache(db);
-		db->handle->pm_errno = ALPM_ERR_LIBARCHIVE;
+		_alpm_set_errno(db->handle, ALPM_ERR_LIBARCHIVE);
 		ret = -1;
 		goto cleanup;
 	}
