@@ -328,9 +328,9 @@ int SYMEXPORT alpm_db_update(int force, alpm_db_t *db)
 	if(ret == -1) {
 		/* pm_errno was set by the download code */
 		_alpm_log(handle, ALPM_LOG_DEBUG, "failed to sync db: %s\n",
-				alpm_strerror(handle->pm_errno));
+				alpm_strerror(alpm_errno(handle)));
 	} else {
-		handle->pm_errno = ALPM_ERR_OK;
+		_alpm_set_errno(handle, ALPM_ERR_OK);
 	}
 
 	_alpm_handle_unlock(handle);

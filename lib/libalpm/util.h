@@ -72,7 +72,7 @@ void _alpm_alloc_fail(size_t size);
 	return (ret); } while(0)
 
 #define RET_ERR_ASYNC_SAFE(handle, err, ret) do { \
-	(handle)->pm_errno = (err); \
+	_alpm_set_errno(handle, err); \
 	return (ret); } while(0)
 
 #define DOUBLE_EQ(x, y) (fabs((x) - (y)) < DBL_EPSILON)

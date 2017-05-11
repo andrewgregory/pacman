@@ -342,14 +342,14 @@ alpm_list_t SYMEXPORT *alpm_pkg_get_optdepends(alpm_pkg_t *pkg)
 alpm_list_t SYMEXPORT *alpm_pkg_get_checkdepends(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
-	pkg->handle->pm_errno = ALPM_ERR_OK;
+	_alpm_set_errno(pkg->handle, ALPM_ERR_OK);
 	return pkg->ops->get_checkdepends(pkg);
 }
 
 alpm_list_t SYMEXPORT *alpm_pkg_get_makedepends(alpm_pkg_t *pkg)
 {
 	ASSERT(pkg != NULL, return NULL);
-	pkg->handle->pm_errno = ALPM_ERR_OK;
+	_alpm_set_errno(pkg->handle, ALPM_ERR_OK);
 	return pkg->ops->get_makedepends(pkg);
 }
 

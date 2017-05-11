@@ -103,7 +103,7 @@ int SYMEXPORT alpm_logaction(alpm_handle_t *handle, const char *prefix,
 		if(_alpm_log_leader(handle->logstream, prefix) < 0
 				|| vfprintf(handle->logstream, fmt, args) < 0) {
 			ret = -1;
-			handle->pm_errno = ALPM_ERR_SYSTEM;
+			_alpm_set_errno(handle, ALPM_ERR_SYSTEM);
 		}
 		fflush(handle->logstream);
 	}

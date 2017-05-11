@@ -1124,7 +1124,7 @@ struct validity {
 	alpm_pkg_t *pkg;
 	char *path;
 	alpm_siglist_t *siglist;
-	alpm_siglevel_t level;
+	alpm_siglevel_t siglevel;
 	alpm_pkgvalidation_t validation;
 	alpm_errno_t error;
 };
