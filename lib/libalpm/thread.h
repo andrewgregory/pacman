@@ -22,9 +22,21 @@
 
 #ifdef HAVE_PTHREAD
 
-#define _ALPM_TLOCK_CB(h) pthread_mutex_lock(&((h)->tlock_cb))
-#define _ALPM_TLOCK_LOG(h) pthread_mutex_lock(&((h)->tlock_log))
-#define _ALPM_TLOCK_TASK(h) pthread_mutex_lock(&((h)->tlock_task))
+#define _ALPM_TLOCK_TIMED(m) do { \
+	int lockret; \
+	struct timespec timeout; \
+	clock_gettime(CLOCK_REALTIME, &timeout); \
+	timeout.tv_sec += 60; \
+	if((lockret = pthread_mutex_timedlock(m, &timeout)) != 0) { \
+		printf("warning: unable to obtain %s lock within %d seconds (%d: %s) (%s: %d)\n", \
+				#m, 60, lockret, strerror(lockret), __FILE__, __LINE__); \
+		pthread_mutex_lock(m); \
+	} \
+} while (0)
+
+#define _ALPM_TLOCK_CB(h) _ALPM_TLOCK_TIMED(&((h)->tlock_cb))
+#define _ALPM_TLOCK_LOG(h) _ALPM_TLOCK_TIMED(&((h)->tlock_log))
+#define _ALPM_TLOCK_TASK(h) _ALPM_TLOCK_TIMED(&((h)->tlock_task))
 
 #define _ALPM_TUNLOCK_CB(h) pthread_mutex_unlock(&((h)->tlock_cb))
 #define _ALPM_TUNLOCK_LOG(h) pthread_mutex_unlock(&((h)->tlock_log))
