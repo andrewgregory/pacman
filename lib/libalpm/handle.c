@@ -48,11 +48,15 @@ alpm_handle_t *_alpm_handle_new(void)
 	handle->lockfd = -1;
 
 #ifdef HAVE_PTHREAD
+	pthread_mutexattr_t attr;
 	handle->threads = 1;
-	pthread_mutex_init(&(handle->tlock_cb), NULL);
-	pthread_mutex_init(&(handle->tlock_log), NULL);
-	pthread_mutex_init(&(handle->tlock_task), NULL);
+	pthread_mutexattr_init(&attr);
+	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutex_init(&(handle->tlock_cb), &attr);
+	pthread_mutex_init(&(handle->tlock_log), &attr);
+	pthread_mutex_init(&(handle->tlock_task), &attr);
 	pthread_key_create(&(handle->tkey_err), free);
+	pthread_mutexattr_destroy(&attr);
 #endif
 
 	return handle;
