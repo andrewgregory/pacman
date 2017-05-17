@@ -726,12 +726,14 @@ static int find_dl_candidates(alpm_db_t *repo, alpm_list_t **files)
 {
 	alpm_list_t *i;
 	alpm_handle_t *handle = repo->handle;
+	int siglevel = alpm_db_get_siglevel(repo);
 
 	for(i = handle->trans->add; i; i = i->next) {
 		alpm_pkg_t *spkg = i->data;
 
 		if(spkg->origin != ALPM_PKG_FROM_FILE && repo == spkg->origin_data.db) {
 			char *fpath = NULL;
+			int wants_sigfile = siglevel & ALPM_SIG_PACKAGE && !spkg->base64_sig;
 
 			if(!repo->servers) {
 				handle->pm_errno = ALPM_ERR_SERVER_NONE;
@@ -755,6 +757,14 @@ static int find_dl_candidates(alpm_db_t *repo, alpm_list_t **files)
 			}
 
 			FREE(fpath);
+			if(wants_sigfile) {
+				struct dload_payload *payload;
+				char *sigpath = _alpm_sigpath(handle, spkg->filename);
+				payload = build_payload(handle, sigpath, 16348, repo->servers);
+				payload->errors_ok = (siglevel & ALPM_SIG_PACKAGE_OPTIONAL);
+				*files = alpm_list_add(*files, payload);
+				free(sigpath);
+			}
 		}
 	}
 
@@ -853,7 +863,8 @@ static int download_files(alpm_handle_t *handle)
 		EVENT(handle, &event);
 		event.type = ALPM_EVENT_RETRIEVE_DONE;
 		for(i = files; i; i = i->next) {
-			if(download_single_file(handle, i->data, cachedir) == -1) {
+			struct dload_payload *payload = i->data;
+			if(download_single_file(handle, payload, cachedir) == -1 && !payload->errors_ok) {
 				errors++;
 				event.type = ALPM_EVENT_RETRIEVE_FAILED;
 				_alpm_log(handle, ALPM_LOG_WARNING, _("failed to retrieve some files\n"));
