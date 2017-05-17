@@ -722,7 +722,8 @@ static struct dload_payload *build_payload(alpm_handle_t *handle,
 		return payload;
 }
 
-static int find_dl_candidates(alpm_db_t *repo, alpm_list_t **files)
+static int find_dl_candidates(alpm_db_t *repo,
+		alpm_list_t **files, int always_download_sig)
 {
 	alpm_list_t *i;
 	alpm_handle_t *handle = repo->handle;
@@ -733,7 +734,8 @@ static int find_dl_candidates(alpm_db_t *repo, alpm_list_t **files)
 
 		if(spkg->origin != ALPM_PKG_FROM_FILE && repo == spkg->origin_data.db) {
 			char *fpath = NULL;
-			int wants_sigfile = siglevel & ALPM_SIG_PACKAGE && !spkg->base64_sig;
+			int wants_sigfile = always_download_sig
+				|| (siglevel & ALPM_SIG_PACKAGE && !spkg->base64_sig);
 
 			if(!repo->servers) {
 				handle->pm_errno = ALPM_ERR_SERVER_NONE;
@@ -830,7 +832,8 @@ static int download_files(alpm_handle_t *handle)
 	}
 
 	for(i = handle->dbs_sync; i; i = i->next) {
-		errors += find_dl_candidates(i->data, &files);
+		errors += find_dl_candidates(i->data, &files,
+				handle->trans->flags & ALPM_TRANS_FLAG_DOWNLOAD_SIGS);
 	}
 
 	if(files) {

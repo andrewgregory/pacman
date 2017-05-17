@@ -1424,7 +1424,8 @@ typedef enum _alpm_transflag_t {
 	ALPM_TRANS_FLAG_RECURSE = (1 << 5),
 	/** Modify database but do not commit changes to the filesystem. */
 	ALPM_TRANS_FLAG_DBONLY = (1 << 6),
-	/* (1 << 7) flag can go here */
+	/** Download detached signatures for sync packages */
+	ALPM_TRANS_FLAG_DOWNLOAD_SIGS = (1 << 7),
 	/** Use ALPM_PKG_REASON_DEPEND when installing packages. */
 	ALPM_TRANS_FLAG_ALLDEPS = (1 << 8),
 	/** Only download packages and do not actually install. */
