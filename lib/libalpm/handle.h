@@ -38,24 +38,21 @@
 
 #define EVENT(h, e) \
 do { \
-	if((h)->eventcb) { \
-		_ALPM_TLOCK_CB(h); \
+	if((h)->eventcb && _ALPM_TLOCK_CB(h) == 0) { \
 		(h)->eventcb((alpm_event_t *) (e)); \
 		_ALPM_TUNLOCK_CB(h); \
 	} \
 } while(0)
 #define QUESTION(h, q) \
 do { \
-	if((h)->questioncb) { \
-		_ALPM_TLOCK_CB(h); \
+	if((h)->questioncb && _ALPM_TLOCK_CB(h) == 0) { \
 		(h)->questioncb((alpm_question_t *) (q)); \
 		_ALPM_TUNLOCK_CB(h); \
 	} \
 } while(0)
 #define PROGRESS(h, e, p, per, n, r) \
 do { \
-	if((h)->progresscb) { \
-		_ALPM_TLOCK_CB(h); \
+	if((h)->progresscb && _ALPM_TLOCK_CB(h) == 0) { \
 		(h)->progresscb(e, p, per, n, r); \
 		_ALPM_TUNLOCK_CB(h); \
 	} \
@@ -146,7 +143,7 @@ alpm_errno_t _alpm_set_directory_option(const char *value,
 
 void _alpm_set_errno(alpm_handle_t *handle, alpm_errno_t err);
 
-void _alpm_run_threaded(alpm_handle_t *handle,
+int _alpm_run_threaded(alpm_handle_t *handle,
 		void *(*function) (void *), void *arg);
 
 #endif /* ALPM_HANDLE_H */

@@ -64,7 +64,16 @@ int SYMEXPORT alpm_logaction(alpm_handle_t *handle, const char *prefix,
 	if(!(prefix && *prefix)) {
 		prefix = "UNKNOWN";
 	}
-	_ALPM_TLOCK_LOG(handle);
+
+	va_start(args, fmt);
+
+	if(_ALPM_TLOCK_LOG(handle) != 0) {
+		fprintf(stderr, "warning: unable to obtain log lock for message:\n");
+		vfprintf(stderr, fmt, args);
+		fflush(stderr);
+		va_end(args);
+		return -1;
+	}
 
 	/* check if the logstream is open already, opening it if needed */
 	if(handle->logstream == NULL && handle->logfile != NULL) {
@@ -87,8 +96,6 @@ int SYMEXPORT alpm_logaction(alpm_handle_t *handle, const char *prefix,
 	}
 
 	_ALPM_TUNLOCK_LOG(handle);
-
-	va_start(args, fmt);
 
 	if(handle->usesyslog) {
 		/* we can't use a va_list more than once, so we need to copy it
@@ -123,7 +130,15 @@ void _alpm_log(alpm_handle_t *handle, alpm_loglevel_t flag, const char *fmt, ...
 	}
 
 	va_start(args, fmt);
-	_ALPM_TLOCK_CB(handle);
+
+	if(_ALPM_TLOCK_CB(handle) != 0) {
+		fprintf(stderr, "warning: unable to obtain callback lock for message:\n");
+		vfprintf(stderr, fmt, args);
+		fflush(stderr);
+		va_end(args);
+		return;
+	}
+
 	handle->logcb(flag, fmt, args);
 	_ALPM_TUNLOCK_CB(handle);
 	va_end(args);
@@ -145,7 +160,12 @@ int _alpm_logaction(alpm_handle_t *handle, const char *prefix,
 		prefix = "UNKNOWN";
 	}
 
-	_ALPM_TLOCK_LOG(handle);
+	if(_ALPM_TLOCK_LOG(handle) != 0) {
+		fprintf(stderr, "warning: unable to obtain log lock for message:\n");
+		vfprintf(stderr, fmt, args);
+		fflush(stderr);
+		return -1;
+	}
 
 	if(handle->usesyslog) {
 		/* we can't use a va_list more than once, so we need to copy it

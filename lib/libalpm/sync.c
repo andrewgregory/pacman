@@ -1156,7 +1156,10 @@ static void *check_validity_single(void *payload)
 	while(1) {
 		alpm_list_t *i;
 
-		_ALPM_TLOCK_TASK(handle);
+		if(_ALPM_TLOCK_TASK(handle) != 0) {
+			return (void*) -1;
+		}
+
 		i = _alpm_list_shift(&(args->pkgs));
 		if(!i) {
 			_ALPM_TUNLOCK_TASK(handle);
@@ -1182,7 +1185,11 @@ static void *check_validity_single(void *payload)
 			v.error = alpm_errno(handle);
 			MALLOC(invalid, sizeof(struct validity), return NULL);
 			memcpy(invalid, &v, sizeof(struct validity));
-			_ALPM_TLOCK_TASK(handle);
+
+			if(_ALPM_TLOCK_TASK(handle) != 0) {
+				return (void*) -1;
+			}
+
 			args->errors = alpm_list_add(args->errors, invalid);
 			_ALPM_TUNLOCK_TASK(handle);
 		} else {
@@ -1216,7 +1223,11 @@ static int check_validity(alpm_handle_t *handle,
 	PROGRESS(handle, ALPM_PROGRESS_INTEGRITY_START, "", 0,
 				total, current);
 
-	_alpm_run_threaded(handle, check_validity_single, &args);
+	if(_alpm_run_threaded(handle, check_validity_single, &args) != 0) {
+		_alpm_log(handle, ALPM_LOG_ERROR,
+				"unrecoverable error during signature checking\n" );
+			return -1;
+	}
 
 	PROGRESS(handle, ALPM_PROGRESS_INTEGRITY_START, "", 100,
 			total, current);

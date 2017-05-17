@@ -907,22 +907,27 @@ void _alpm_set_errno(alpm_handle_t *handle, alpm_errno_t err) {
 #endif
 }
 
-void _alpm_run_threaded(alpm_handle_t *handle,
+int _alpm_run_threaded(alpm_handle_t *handle,
 		void *(*function) (void *), void *arg)
 {
 #ifdef HAVE_PTHREAD
 	pthread_t threads[handle->threads - 1];
-	int idx;
+	int idx, ret = 0;
 	for(idx = 0; idx < handle->threads - 1; idx++) {
 		pthread_create(&threads[idx], NULL, function, arg);
 	}
 	function(arg);
 	for(idx = 0; idx < handle->threads - 1; idx++) {
-		pthread_join(threads[idx], NULL);
+		void *retval;
+		pthread_join(threads[idx], &retval);
+		if((long) retval != 0) {
+			ret = -1;
+		}
 	}
 #else
-	function(arg);
+	ret = (int) function(arg);
 #endif
+	return ret;
 }
 
 int SYMEXPORT alpm_option_set_thread_count(alpm_handle_t *handle,

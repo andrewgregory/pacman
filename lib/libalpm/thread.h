@@ -20,37 +20,47 @@
 #ifndef _ALPM_THREAD_H
 #define _ALPM_THREAD_H
 
+#include <pthread.h>
+#include <string.h>
+
+#include <log.h>
+
 #ifdef HAVE_PTHREAD
 
-#define _ALPM_TLOCK_TIMED(m) do { \
-	int lockret; \
-	struct timespec timeout; \
-	clock_gettime(CLOCK_REALTIME, &timeout); \
-	timeout.tv_sec += 60; \
-	if((lockret = pthread_mutex_timedlock(m, &timeout)) != 0) { \
-		printf("warning: unable to obtain %s lock within %d seconds (%d: %s) (%s: %d)\n", \
-				#m, 60, lockret, strerror(lockret), __FILE__, __LINE__); \
-		pthread_mutex_lock(m); \
-	} \
-} while (0)
-
-#define _ALPM_TLOCK_CB(h) _ALPM_TLOCK_TIMED(&((h)->tlock_cb))
-#define _ALPM_TLOCK_LOG(h) _ALPM_TLOCK_TIMED(&((h)->tlock_log))
-#define _ALPM_TLOCK_TASK(h) _ALPM_TLOCK_TIMED(&((h)->tlock_task))
+#define _ALPM_TLOCK_CB(h) _alpm_lock_mutex(h, &h->tlock_cb, "CB", __FILE__, __LINE__)
+#define _ALPM_TLOCK_LOG(h) _alpm_lock_mutex(h, &h->tlock_log, "LOG", __FILE__, __LINE__)
+#define _ALPM_TLOCK_TASK(h) _alpm_lock_mutex(h, &h->tlock_task, "TASK", __FILE__, __LINE__)
 
 #define _ALPM_TUNLOCK_CB(h) pthread_mutex_unlock(&((h)->tlock_cb))
 #define _ALPM_TUNLOCK_LOG(h) pthread_mutex_unlock(&((h)->tlock_log))
 #define _ALPM_TUNLOCK_TASK(h) pthread_mutex_unlock(&((h)->tlock_task))
 
+static inline int _alpm_lock_mutex(alpm_handle_t *handle, pthread_mutex_t *m,
+		const char *label, const char *file, int lineno)
+{
+	int lockret;
+	struct timespec timeout;
+	const int period = 20;
+	clock_gettime(CLOCK_REALTIME, &timeout);
+	timeout.tv_sec += period;
+	if((lockret = pthread_mutex_timedlock(m, &timeout)) != 0) {
+		_alpm_log(handle, ALPM_LOG_WARNING,
+				"unable to obtain %s lock within %d seconds (%d: %s) (%s: %d)\n",
+				label, period, lockret, strerror(lockret), file, lineno);
+		return lockret;
+	}
+	return 0;
+}
+
 #else
 
-#define _ALPM_TLOCK_CB(h)
-#define _ALPM_TLOCK_LOG(h)
-#define _ALPM_TLOCK_TASK(h)
+#define _ALPM_TLOCK_CB(h) ((int)0)
+#define _ALPM_TLOCK_LOG(h) ((int)0)
+#define _ALPM_TLOCK_TASK(h) ((int)0)
 
-#define _ALPM_TUNLOCK_CB(h)
-#define _ALPM_TUNLOCK_LOG(h)
-#define _ALPM_TUNLOCK_TASK(h)
+#define _ALPM_TUNLOCK_CB(h) ((int)0)
+#define _ALPM_TUNLOCK_LOG(h) ((int)0)
+#define _ALPM_TUNLOCK_TASK(h) ((int)0)
 
 #endif /* HAVE_PTHREAD */
 
