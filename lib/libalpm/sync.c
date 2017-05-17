@@ -722,6 +722,21 @@ static struct dload_payload *build_payload(alpm_handle_t *handle,
 		return payload;
 }
 
+static int _alpm_pkg_has_sigfile(alpm_pkg_t *pkg)
+{
+	int ret = 0;
+	char *fpath = _alpm_filecache_find(pkg->handle, pkg->filename);
+	if(fpath) {
+		char *sigpath = _alpm_sigpath(pkg->handle, fpath);
+		if(sigpath) {
+			ret = access(sigpath, F_OK) == 0;
+		}
+		free(fpath);
+		free(sigpath);
+	}
+	return ret;
+}
+
 static int find_dl_candidates(alpm_db_t *repo,
 		alpm_list_t **files, int always_download_sig)
 {
@@ -759,7 +774,7 @@ static int find_dl_candidates(alpm_db_t *repo,
 			}
 
 			FREE(fpath);
-			if(wants_sigfile) {
+			if(wants_sigfile && !_alpm_pkg_has_sigfile(spkg)) {
 				struct dload_payload *payload;
 				char *sigpath = _alpm_sigpath(handle, spkg->filename);
 				payload = build_payload(handle, sigpath, 16348, repo->servers);
