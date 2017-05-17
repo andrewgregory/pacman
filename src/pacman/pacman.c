@@ -194,6 +194,8 @@ static void usage(int op, const char * const myname)
 				addlist(_("      --ignore <pkg>   ignore a package upgrade (can be used more than once)\n"));
 				addlist(_("      --ignoregroup <grp>\n"
 				          "                       ignore a group upgrade (can be used more than once)\n"));
+				addlist(_("      --download-signatures\n"
+				          "                       download detached signature files for sync packages\n"));
 				/* fall through */
 			case PM_OP_REMOVE:
 				addlist(_("  -d, --nodeps         skip dependency version checks (-dd to skip all checks)\n"));
@@ -732,6 +734,9 @@ static int parsearg_upgrade(int opt)
 		case OP_IGNOREGROUP:
 			parsearg_util_addlist(&(config->ignoregrp));
 			break;
+		case OP_DOWNLOAD_SIGS:
+			config->flags |= ALPM_TRANS_FLAG_DOWNLOAD_SIGS;
+			break;
 		default: return 1;
 	}
 	return 0;
@@ -943,6 +948,7 @@ static int parseargs(int argc, char *argv[])
 		{"dbonly",     no_argument,       0, OP_DBONLY},
 		{"color",      required_argument, 0, OP_COLOR},
 		{"disable-download-timeout", no_argument, 0, OP_DISABLEDLTIMEOUT},
+		{"download-signatures", no_argument, 0, OP_DOWNLOAD_SIGS},
 		{0, 0, 0, 0}
 	};
 

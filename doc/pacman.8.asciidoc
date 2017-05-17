@@ -253,6 +253,10 @@ Upgrade Options (apply to '-S' and '-U')[[UO]]
 	as explicitly installed so it will not be removed by the '\--recursive'
 	remove operation.
 
+*\--download-signatures*::
+	Attempt to download detached signature files when retrieving packages from
+	sync repositories.
+
 *\--ignore* <package>::
 	Directs pacman to ignore upgrades of package even if there is one
 	available. Multiple packages can be specified by separating them
