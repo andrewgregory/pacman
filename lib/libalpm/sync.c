@@ -705,6 +705,11 @@ static int prompt_to_delete(alpm_handle_t *handle, const char *filepath,
 	};
 	QUESTION(handle, &question);
 	if(question.remove) {
+		char sigpath[PATH_MAX];
+		if(snprintf(sigpath, PATH_MAX, "%s.sig", filepath) < PATH_MAX
+				&& access(sigpath, F_OK) == 0) {
+			unlink(sigpath);
+		}
 		unlink(filepath);
 	}
 	return question.remove;
