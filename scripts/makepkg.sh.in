@@ -609,7 +609,7 @@ check_pgpsigs() {
 	msg "$(gettext "Verifying source file signatures with %s...")" "gpg"
 
 	local file ext decompress found pubkey success status fingerprint trusted
-	local warning=0
+	local warnings=0
 	local errors=0
 	local statusfile=$(mktemp)
 	local all_sources
