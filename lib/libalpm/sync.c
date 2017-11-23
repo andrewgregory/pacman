@@ -47,6 +47,7 @@
 #include "remove.h"
 #include "diskspace.h"
 #include "signing.h"
+#include "resolver.h"
 
 /** Check for new version of pkg in sync repos
  * (only the first occurrence is considered in sync)
@@ -412,8 +413,10 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 
 	if(!(trans->flags & ALPM_TRANS_FLAG_NODEPS)) {
 		alpm_list_t *resolved = NULL;
+#if 0
 		alpm_list_t *remove = alpm_list_copy(trans->remove);
 		alpm_list_t *localpkgs;
+#endif
 
 		/* Build up list by repeatedly resolving each transaction package */
 		/* Resolve targets dependencies */
@@ -421,6 +424,7 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 		EVENT(handle, &event);
 		_alpm_log(handle, ALPM_LOG_DEBUG, "resolving target's dependencies\n");
 
+#if 0
 		/* build remove list for resolvedeps */
 		for(i = trans->add; i; i = i->next) {
 			alpm_pkg_t *spkg = i->data;
@@ -447,37 +451,51 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 		}
 		alpm_list_free(localpkgs);
 		alpm_list_free(remove);
+#endif
+		resolved = _alpm_resolvedeps_thorough(handle, trans->add, trans->remove);
 
 		/* If there were unresolvable top-level packages, prompt the user to
 		   see if they'd like to ignore them rather than failing the sync */
-		if(unresolvable != NULL) {
-			alpm_question_remove_pkgs_t question = {
-				.type = ALPM_QUESTION_REMOVE_PKGS,
-				.skip = 0,
-				.packages = unresolvable
-			};
-			QUESTION(handle, &question);
-			if(question.skip) {
-				/* User wants to remove the unresolvable packages from the
-				   transaction. The packages will be removed from the actual
-				   transaction when the transaction packages are replaced with a
-				   dependency-reordered list below */
-				handle->pm_errno = ALPM_ERR_OK;
-				if(data) {
-					alpm_list_free_inner(*data,
-							(alpm_list_fn_free)alpm_depmissing_free);
-					alpm_list_free(*data);
-					*data = NULL;
-				}
-			} else {
-				/* pm_errno was set by resolvedeps, callback may have overwrote it */
-				handle->pm_errno = ALPM_ERR_UNSATISFIED_DEPS;
+		if(resolved == NULL) {
+			ret = -1;
+			goto cleanup;
+		}
+#if 0
+			alpm_list_t *try_harder = _alpm_resolvedeps_thorough(handle, trans->add, trans->remove);
+			if(try_harder) {
 				alpm_list_free(resolved);
 				alpm_list_free(unresolvable);
-				ret = -1;
-				goto cleanup;
+				resolved = try_harder;
+			} else {
+				alpm_question_remove_pkgs_t question = {
+					.type = ALPM_QUESTION_REMOVE_PKGS,
+					.skip = 0,
+					.packages = unresolvable
+				};
+				QUESTION(handle, &question);
+				if(question.skip) {
+					/* User wants to remove the unresolvable packages from the
+						 transaction. The packages will be removed from the actual
+						 transaction when the transaction packages are replaced with a
+						 dependency-reordered list below */
+					handle->pm_errno = ALPM_ERR_OK;
+					if(data) {
+						alpm_list_free_inner(*data,
+								(alpm_list_fn_free)alpm_depmissing_free);
+						alpm_list_free(*data);
+						*data = NULL;
+					}
+				} else {
+					/* pm_errno was set by resolvedeps, callback may have overwrote it */
+					handle->pm_errno = ALPM_ERR_UNSATISFIED_DEPS;
+					alpm_list_free(resolved);
+					alpm_list_free(unresolvable);
+					ret = -1;
+					goto cleanup;
+				}
 			}
 		}
+#endif
 
 		/* Set DEPEND reason for pulled packages */
 		for(i = resolved; i; i = i->next) {

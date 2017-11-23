@@ -51,6 +51,7 @@ libalpm_la_SOURCES = \
 	pkghash.h pkghash.c \
 	rawstr.c \
 	remove.h remove.c \
+	resolver.h resolver.c \
 	signing.c signing.h \
 	sync.h sync.c \
 	trans.h trans.c \
