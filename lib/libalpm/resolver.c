@@ -56,6 +56,7 @@ static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
 		alpm_list_t **graph, alpm_pkg_t *pkg, alpm_list_t *pool)
 {
 	alpm_list_t *i;
+	printf("extending graph with %s\n", pkg->name);
 	for(i = *graph; i; i = i->next) {
 		rpkg_t *rpkg = i->data;
 		if(pkg == rpkg->pkg) {
@@ -73,12 +74,13 @@ static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
 	rpkg->disabled = 0;
 	rpkg->picked = 0;
 
-	for(j = pkg->depends; j; j = j->next) {
+	for(j = alpm_pkg_get_depends(pkg); j; j = j->next) {
 		struct _alpm_resolver_dep *rdep = malloc(sizeof(struct _alpm_resolver_dep));
 		alpm_list_t *satisfiers = _alpm_resolver_satisfiers(j->data, pool);
 		alpm_list_append(&(rpkg->rdeps), rdep);
 		rdep->satisfiers = NULL;
 		rdep->dep = j->data;
+		printf("resolving dep %s\n", rdep->dep->name);
 		if(satisfiers == NULL) {
 			printf("no satisfiers found for %s %s\n", pkg->name, rdep->dep->name);
 			return NULL;
@@ -104,12 +106,12 @@ static void _alpm_resolver_reduce(rpkg_t *rpkg, alpm_list_t **solution)
 	if(rpkg->disabled || rpkg->picked) {
 		return;
 	}
+	rpkg->picked = 1;
 	printf("reducing %s\n", rpkg->pkg->name);
 	if(rpkg->pkg->origin != ALPM_PKG_FROM_LOCALDB) {
 		printf("appending %s\n", rpkg->pkg->name);
 		alpm_list_append(solution, rpkg->pkg);
 	}
-	rpkg->picked = 1;
 	for(i = rpkg->rdeps; i; i = i->next) {
 		rdep_t *rdep = i->data;
 		for(j = rdep->satisfiers; j; j = j->next) {
@@ -280,7 +282,7 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 	for(i = _alpm_db_get_pkgcache(handle->db_local); i; i = i->next) {
 		alpm_pkg_t *pkg = i->data;
 		if(!alpm_pkg_find(add, pkg->name) && !alpm_pkg_find(remove, pkg->name)) {
-			printf("appending %s to pool\n", pkg->name);
+			printf("appending local/%s to pool\n", pkg->name);
 			alpm_list_append(&pool, pkg);
 		}
 	}
@@ -289,14 +291,14 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 		for(j = _alpm_db_get_pkgcache(i->data); j; j = j->next) {
 			alpm_pkg_t *pkg = j->data;
 			if(!alpm_pkg_find(add, pkg->name) && !alpm_pkg_find(remove, pkg->name)) {
-				printf("appending %s to pool\n", pkg->name);
+				printf("appending sync/%s to pool\n", pkg->name);
 				alpm_list_append(&pool, pkg);
 			}
 		}
 	}
 	for(i = add; i; i = i->next) {
 		alpm_pkg_t *pkg = i->data;
-		printf("appending %s to pool\n", pkg->name);
+		printf("appending add/%s to pool\n", pkg->name);
 		alpm_list_append(&pool, pkg);
 	}
 
@@ -309,8 +311,19 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 		}
 		alpm_list_append(&roots, rpkg);
 	}
+	for(i = _alpm_db_get_pkgcache(handle->db_local); i; i = i->next) {
+		alpm_pkg_t *pkg = i->data;
+		if(!alpm_pkg_find(add, pkg->name) && !alpm_pkg_find(remove, pkg->name)) {
+			rpkg_t *rpkg = _alpm_resolver_extend_graph(&graph, pkg, pool);
+			if(rpkg == NULL) {
+				puts("extend graph failed");
+				goto cleanup;
+			}
+			alpm_list_append(&roots, rpkg);
+		}
+	}
 	solution = _alpm_resolver_solve(graph, roots);
-	printf("%zd %zd\n", alpm_list_count(graph), alpm_list_count(roots));
+	printf("solution: %zd graph: %zd roots: %zd\n", alpm_list_count(solution), alpm_list_count(graph), alpm_list_count(roots));
 	puts("resolvedeps_cleanup");
 
 cleanup:
