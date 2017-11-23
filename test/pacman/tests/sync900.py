@@ -23,3 +23,5 @@ self.addrule("!PKG_EXIST=foo")
 self.addrule("PKG_EXIST=bar")
 self.addrule("PKG_EXIST=pkg1")
 self.addrule("PKG_EXIST=pkg2")
+
+self.expectfailure = True

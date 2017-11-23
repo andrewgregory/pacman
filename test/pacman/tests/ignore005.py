@@ -44,3 +44,4 @@ self.addrule("PKG_VERSION=packageA2|2.0-1")
 self.addrule("PKG_VERSION=packageA3|1.0-1")
 self.addrule("PKG_VERSION=packageA4|2.0-1")
 self.addrule("PKG_VERSION=packageA5|2.0-1")
+self.expectfailure = True

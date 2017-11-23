@@ -27,3 +27,4 @@ self.addrule("!PKG_EXIST=pkg3")
 self.addrule("!PKG_EXIST=pkg4")
 self.addrule("FILE_EXIST=pkg2ok")
 self.addrule("FILE_EXIST=pkg4ok")
+self.expectfailure = True

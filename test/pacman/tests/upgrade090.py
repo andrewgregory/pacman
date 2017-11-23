@@ -26,3 +26,4 @@ for p in p1, p2, sp:
 self.addrule("PKG_VERSION=pkg1|1.0-2")
 self.addrule("PKG_VERSION=pkg2|1.0-2")
 self.addrule("!PKG_EXIST=pkg3")
+self.expectfailure = True

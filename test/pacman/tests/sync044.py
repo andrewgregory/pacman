@@ -18,3 +18,4 @@ self.addrule("!PKG_EXIST=pkg1")
 self.addrule("PKG_EXIST=pkg2")
 self.addrule("PKG_EXIST=pkg3")
 self.addrule("PKG_REASON=pkg3|1")
+self.expectfailure = True

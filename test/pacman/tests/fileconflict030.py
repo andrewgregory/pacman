@@ -15,3 +15,4 @@ self.addrule("PACMAN_RETCODE=0")
 self.addrule("PKG_EXIST=bar")
 self.addrule("!PKG_EXIST=foo")
 self.addrule("FILE_EXIST=foo")
+self.expectfailure = True
