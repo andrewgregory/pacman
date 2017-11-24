@@ -41,21 +41,26 @@ typedef struct _alpm_resolver_pkg rpkg_t;
 typedef struct _alpm_resolver_dep rdep_t;
 typedef struct _alpm_resolver_conflict rconflict_t;
 
-static alpm_list_t *_alpm_resolver_satisfiers(alpm_depend_t *dep, alpm_list_t *pool)
+static alpm_list_t *_alpm_resolver_satisfiers(alpm_depend_t *dep, alpm_list_t *pool, int flags)
 {
 	alpm_list_t *i, *satisfiers = NULL;
+	alpm_depmod_t mod = dep->mod;
+	if(flags & ALPM_RESOLVER_IGNORE_DEPENDENCY_VERSION) {
+		dep->mod = ALPM_DEP_MOD_ANY;
+	}
 	for(i = pool; i; i = i->next) {
 		if(_alpm_depcmp(i->data, dep)) {
 			alpm_list_append(&satisfiers, i->data);
 		}
 	}
+	dep->mod = mod;
 	return satisfiers;
 }
 
 #define PKGORIGIN(x) (x)->origin == ALPM_PKG_FROM_LOCALDB ? "local" : "sync"
 
 static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
-		alpm_list_t **graph, alpm_pkg_t *pkg, alpm_list_t *pool)
+		alpm_handle_t *handle, alpm_list_t **graph, alpm_pkg_t *pkg, alpm_list_t *pool, int flags)
 {
 	alpm_list_t *i;
 	for(i = *graph; i; i = i->next) {
@@ -77,8 +82,13 @@ static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
 	rpkg->picked = 0;
 
 	for(j = alpm_pkg_get_depends(pkg); j; j = j->next) {
-		struct _alpm_resolver_dep *rdep = malloc(sizeof(struct _alpm_resolver_dep));
-		alpm_list_t *satisfiers = _alpm_resolver_satisfiers(j->data, pool);
+		struct _alpm_resolver_dep *rdep;
+		if(_alpm_depcmp_provides(j->data, handle->assumeinstalled)) {
+			continue;
+		}
+
+		rdep = malloc(sizeof(struct _alpm_resolver_dep));
+		alpm_list_t *satisfiers = _alpm_resolver_satisfiers(j->data, pool, flags);
 		alpm_list_append(&(rpkg->rdeps), rdep);
 		rdep->satisfiers = NULL;
 		rdep->dep = j->data;
@@ -89,7 +99,7 @@ static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
 			return NULL;
 		}
 		for(i = satisfiers; i; i = i->next) {
-			rpkg_t *satisfier = _alpm_resolver_extend_graph(graph, i->data, pool);
+			rpkg_t *satisfier = _alpm_resolver_extend_graph(handle, graph, i->data, pool, flags);
 			if(satisfier == NULL) {
 				alpm_list_free(satisfiers);
 				puts("extend graph failed");
@@ -287,7 +297,7 @@ static alpm_list_t *_alpm_resolver_solve(alpm_list_t *graph, alpm_list_t *roots)
 	return solution;
 }
 
-alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add, alpm_list_t *remove)
+alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add, alpm_list_t *remove, int flags)
 {
 	alpm_list_t *i, *graph = NULL, *roots = NULL;
 	alpm_list_t *pool = NULL;
@@ -311,7 +321,7 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 		alpm_list_t *j;
 		for(j = _alpm_db_get_pkgcache(i->data); j; j = j->next) {
 			alpm_pkg_t *pkg = j->data;
-			if(!alpm_pkg_find(add, pkg->name) && !alpm_pkg_find(remove, pkg->name)) {
+			if(!alpm_pkg_find(add, pkg->name) && !alpm_pkg_find(remove, pkg->name) && !alpm_pkg_should_ignore(handle, pkg)) {
 				printf("appending sync/%s to pool\n", pkg->name);
 				alpm_list_append(&pool, pkg);
 			}
@@ -320,7 +330,7 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 
 	for(i = add; i; i = i->next) {
 		/* seed the graph with packages we know we need */
-		rpkg_t *rpkg = _alpm_resolver_extend_graph(&graph, i->data, pool);
+		rpkg_t *rpkg = _alpm_resolver_extend_graph(handle, &graph, i->data, pool, flags);
 		if(rpkg == NULL) {
 			puts("extend graph failed");
 			goto cleanup;
@@ -332,7 +342,7 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 		 * break their dependencies */
 		alpm_pkg_t *pkg = i->data;
 		if(!alpm_pkg_find(add, pkg->name) && !alpm_pkg_find(remove, pkg->name)) {
-			rpkg_t *rpkg = _alpm_resolver_extend_graph(&graph, pkg, pool);
+			rpkg_t *rpkg = _alpm_resolver_extend_graph(handle, &graph, pkg, pool, flags);
 			if(rpkg == NULL) {
 				puts("extend graph failed");
 				goto cleanup;

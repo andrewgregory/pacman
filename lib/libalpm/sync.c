@@ -452,7 +452,11 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 		alpm_list_free(localpkgs);
 		alpm_list_free(remove);
 #endif
-		resolved = _alpm_resolvedeps_thorough(handle, trans->add, trans->remove);
+		int resolver_flags = ALPM_RESOLVER_DEFAULT;
+		if(trans->flags & ALPM_TRANS_FLAG_NODEPVERSION) {
+			resolver_flags |= ALPM_RESOLVER_IGNORE_DEPENDENCY_VERSION;
+		}
+		resolved = _alpm_resolvedeps_thorough(handle, trans->add, trans->remove, resolver_flags);
 
 		/* If there were unresolvable top-level packages, prompt the user to
 		   see if they'd like to ignore them rather than failing the sync */
@@ -461,21 +465,21 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 			goto cleanup;
 		}
 
-		for(i = resolved; i; i = i->next) {
-			alpm_pkg_t *pkg = i->data;
-			if(alpm_pkg_should_ignore(handle, pkg)) {
-				alpm_question_install_ignorepkg_t question = {
-					.type = ALPM_QUESTION_INSTALL_IGNOREPKG,
-					.install = 0,
-					.pkg = pkg
-				};
-				QUESTION(handle, &question);
-				if(!question.install) {
-					ret = -1;
-					goto cleanup;
-				}
-			}
-		}
+		/* for(i = resolved; i; i = i->next) { */
+		/* 	alpm_pkg_t *pkg = i->data; */
+		/* 	if(alpm_pkg_should_ignore(handle, pkg)) { */
+		/* 		alpm_question_install_ignorepkg_t question = { */
+		/* 			.type = ALPM_QUESTION_INSTALL_IGNOREPKG, */
+		/* 			.install = 0, */
+		/* 			.pkg = pkg */
+		/* 		}; */
+		/* 		QUESTION(handle, &question); */
+		/* 		if(!question.install) { */
+		/* 			ret = -1; */
+		/* 			goto cleanup; */
+		/* 		} */
+		/* 	} */
+		/* } */
 
 #if 0
 			alpm_list_t *try_harder = _alpm_resolvedeps_thorough(handle, trans->add, trans->remove);
