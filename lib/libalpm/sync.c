@@ -460,6 +460,23 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 			ret = -1;
 			goto cleanup;
 		}
+
+		for(i = resolved; i; i = i->next) {
+			alpm_pkg_t *pkg = i->data;
+			if(alpm_pkg_should_ignore(handle, pkg)) {
+				alpm_question_install_ignorepkg_t question = {
+					.type = ALPM_QUESTION_INSTALL_IGNOREPKG,
+					.install = 0,
+					.pkg = pkg
+				};
+				QUESTION(handle, &question);
+				if(!question.install) {
+					ret = -1;
+					goto cleanup;
+				}
+			}
+		}
+
 #if 0
 			alpm_list_t *try_harder = _alpm_resolvedeps_thorough(handle, trans->add, trans->remove);
 			if(try_harder) {

@@ -150,6 +150,42 @@ static int _alpm_resolver_solve_conflicts(alpm_list_t *conflicts, alpm_list_t *r
 			PKGORIGIN(conflict->rpkg1->pkg), conflict->rpkg1->pkg->name,
 			PKGORIGIN(conflict->rpkg2->pkg), conflict->rpkg2->pkg->name);
 
+	/* rpkg1 is the preferred package, try disabling rpkg2 first */
+	/* check if rpkg2 can be disabled */
+	for(i = roots; i && pkg2_can_be_disabled; i = i->next) {
+		if(conflict->rpkg2 == i->data && conflict->rpkg2->pkg->origin != ALPM_PKG_FROM_LOCALDB) {
+			printf("%s/%s cannot be disabled because it is a root\n",
+					PKGORIGIN(conflict->rpkg2->pkg), conflict->rpkg2->pkg->name);
+			pkg2_can_be_disabled = 0;
+		}
+	}
+	for(i = conflict->rpkg2->owners; i && pkg2_can_be_disabled; i = i->next) {
+			rdep_t *rdep = i->data;
+			int dep_has_alt_satisfier = 0;
+			alpm_list_t *k;
+			for(k = rdep->satisfiers; k && !dep_has_alt_satisfier; k = k->next) {
+				rpkg_t *satisfier = k->data;
+				if(satisfier != conflict->rpkg2 && !satisfier->disabled) {
+					dep_has_alt_satisfier = 1;
+				}
+			}
+			if(!dep_has_alt_satisfier) {
+				printf("%s/%s cannot be disabled because it is a sole dependency of %s/%s\n",
+						PKGORIGIN(conflict->rpkg2->pkg), conflict->rpkg2->pkg->name,
+						PKGORIGIN(rdep->rpkg->pkg), rdep->rpkg->pkg->name);
+				pkg2_can_be_disabled = 0;
+			}
+	}
+	if(pkg2_can_be_disabled) {
+		conflict->rpkg2->disabled = 1;
+		if(_alpm_resolver_solve_conflicts(conflicts->next, roots) == 0) {
+			printf("disabling %s/%s\n",
+					PKGORIGIN(conflict->rpkg2->pkg), conflict->rpkg2->pkg->name);
+			return 0;
+		}
+		conflict->rpkg2->disabled = 0;
+	}
+
 	/* check if rpkg1 can be disabled */
 	for(i = roots; i && pkg1_can_be_disabled; i = i->next) {
 		if(conflict->rpkg1 == i->data && conflict->rpkg1->pkg->origin != ALPM_PKG_FROM_LOCALDB) {
@@ -185,41 +221,6 @@ static int _alpm_resolver_solve_conflicts(alpm_list_t *conflicts, alpm_list_t *r
 			return 0;
 		}
 		conflict->rpkg1->disabled = 0;
-	}
-
-	/* check if rpkg2 can be disabled */
-	for(i = roots; i && pkg2_can_be_disabled; i = i->next) {
-		if(conflict->rpkg2 == i->data && conflict->rpkg2->pkg->origin != ALPM_PKG_FROM_LOCALDB) {
-			printf("%s/%s cannot be disabled because it is a root\n",
-					PKGORIGIN(conflict->rpkg2->pkg), conflict->rpkg2->pkg->name);
-			pkg2_can_be_disabled = 0;
-		}
-	}
-	for(i = conflict->rpkg2->owners; i && pkg2_can_be_disabled; i = i->next) {
-			rdep_t *rdep = i->data;
-			int dep_has_alt_satisfier = 0;
-			alpm_list_t *k;
-			for(k = rdep->satisfiers; k && !dep_has_alt_satisfier; k = k->next) {
-				rpkg_t *satisfier = k->data;
-				if(satisfier != conflict->rpkg2 && !satisfier->disabled) {
-					dep_has_alt_satisfier = 1;
-				}
-			}
-			if(!dep_has_alt_satisfier) {
-				printf("%s/%s cannot be disabled because it is a sole dependency of %s/%s\n",
-						PKGORIGIN(conflict->rpkg2->pkg), conflict->rpkg2->pkg->name,
-						PKGORIGIN(rdep->rpkg->pkg), rdep->rpkg->pkg->name);
-				pkg2_can_be_disabled = 0;
-			}
-	}
-	if(pkg2_can_be_disabled) {
-		conflict->rpkg2->disabled = 1;
-		if(_alpm_resolver_solve_conflicts(conflicts->next, roots) == 0) {
-			printf("disabling %s/%s\n",
-					PKGORIGIN(conflict->rpkg2->pkg), conflict->rpkg2->pkg->name);
-			return 0;
-		}
-		conflict->rpkg2->disabled = 0;
 	}
 
 	printf("unable to resolve conflict between %s - %s\n",
