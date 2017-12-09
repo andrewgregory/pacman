@@ -13,6 +13,6 @@ self.addpkg2db("local", lp1)
 
 self.args = "-S %s" % " ".join([p.name for p in (sp1, sp2)])
 
-self.addrule("PACMAN_RETCODE=0")
-self.addrule("PKG_VERSION=pkg1|1.0-2")
+self.addrule("!PACMAN_RETCODE=0")
+self.addrule("PKG_VERSION=pkg1|1.0-1")
 self.addrule("!PKG_EXIST=pkg2")

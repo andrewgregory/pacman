@@ -16,4 +16,3 @@ self.args = "-Su --ask=4"
 self.addrule("PACMAN_RETCODE=0")
 self.addrule("PKG_EXIST=pkg1")
 self.addrule("!PKG_EXIST=pkg2")
-self.expectfailure = True

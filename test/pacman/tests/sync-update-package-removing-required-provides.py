@@ -20,4 +20,3 @@ self.args = "-Su"
 self.addrule("PACMAN_RETCODE=0")
 self.addrule("PKG_VERSION=feature|2-1")
 self.addrule("PKG_VERSION=pkg1|2-1")
-self.expectfailure = True

@@ -27,5 +27,3 @@ self.addrule("PKG_EXIST=qt")
 self.addrule("PKG_EXIST=phonon")
 self.addrule("PKG_EXIST=kdeapp")
 self.addrule("PKG_VERSION=qt|4.6.1-1")
-
-self.expectfailure = True
