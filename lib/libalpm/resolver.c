@@ -240,10 +240,12 @@ static int _alpm_resolver_solve_conflicts(alpm_list_t *conflicts, alpm_list_t *r
 
 static int _alpm_resolver_pkgs_conflict(alpm_pkg_t *pkg1, alpm_pkg_t *pkg2) {
 	alpm_list_t *i;
+	/* all packages conflict with alternate versions of themselves */
 	if(strcmp(pkg1->name, pkg2->name) == 0) {
 		printf("%s conflicts with %s\n", pkg1->name, pkg2->name);
 		return 1;
 	}
+	/* check conflicts in one direction */
 	for(i = alpm_pkg_get_conflicts(pkg1); i; i = i->next) {
 		alpm_depend_t *conflict = i->data;
 		if(_alpm_depcmp(pkg2, conflict)) {
@@ -251,6 +253,7 @@ static int _alpm_resolver_pkgs_conflict(alpm_pkg_t *pkg1, alpm_pkg_t *pkg2) {
 			return 1;
 		}
 	}
+	/* check conflicts in the other direction */
 	for(i = alpm_pkg_get_conflicts(pkg2); i; i = i->next) {
 		alpm_depend_t *conflict = i->data;
 		if(_alpm_depcmp(pkg1, conflict)) {
