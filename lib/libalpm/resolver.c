@@ -114,11 +114,9 @@ static alpm_list_t *_alpm_rdep_find_satisfier(struct _alpm_dep_graph *graph, rde
 	if(satisfier) {
 		rpkg_t *rpkg = _alpm_resolver_extend_graph(graph, satisfier);
 		alpm_list_append(&(rpkg->owners), rdep);
-		debug("found %s satisfier for %s %s\n", satisfier->name, d->name, d->version);
 		return alpm_list_append(&(rdep->satisfiers), rpkg);
 	}
 
-	debug("unable to find satisfier for %s %s\n", d->name, d->version);
 	return NULL;
 }
 
