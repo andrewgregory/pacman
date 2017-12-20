@@ -139,11 +139,6 @@ int SYMEXPORT alpm_trans_prepare(alpm_handle_t *handle, alpm_list_t **data)
 
 	if(!(trans->flags & ALPM_TRANS_FLAG_NODEPS)) {
 		_alpm_log(handle, ALPM_LOG_DEBUG, "sorting by dependencies\n");
-		if(trans->add) {
-			alpm_list_t *add_orig = trans->add;
-			trans->add = _alpm_sortbydeps(handle, add_orig, trans->remove, 0);
-			alpm_list_free(add_orig);
-		}
 		if(trans->remove) {
 			alpm_list_t *rem_orig = trans->remove;
 			trans->remove = _alpm_sortbydeps(handle, rem_orig, NULL, 1);

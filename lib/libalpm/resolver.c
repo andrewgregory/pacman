@@ -7,6 +7,11 @@
 
 #include <string.h>
 
+struct _alpm_dep_graph {
+	alpm_list_t *pkg_nodes;
+	alpm_list_t *dep_nodes;
+};
+
 struct _alpm_resolver_pkg {
 	alpm_pkg_t *pkg;
 	alpm_list_t *rdeps;
@@ -16,7 +21,6 @@ struct _alpm_resolver_pkg {
 };
 
 struct _alpm_resolver_dep {
-	struct _alpm_resolver_pkg *rpkg;
 	alpm_depend_t *dep;
 	alpm_list_t *satisfiers;
 };
@@ -61,10 +65,10 @@ static alpm_list_t *_alpm_resolver_satisfiers(alpm_depend_t *dep, alpm_list_t *p
 #define PKGORIGIN(x) (x)->origin == ALPM_PKG_FROM_LOCALDB ? "local" : "sync"
 
 static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
-		alpm_handle_t *handle, alpm_list_t **graph, alpm_pkg_t *pkg, alpm_list_t *pool, int flags)
+		alpm_handle_t *handle, struct _alpm_dep_graph *graph, alpm_pkg_t *pkg, alpm_list_t *pool, int flags)
 {
 	alpm_list_t *i;
-	for(i = *graph; i; i = i->next) {
+	for(i = graph->pkg_nodes; i; i = i->next) {
 		rpkg_t *rpkg = i->data;
 		if(pkg == rpkg->pkg) {
 			return rpkg;
@@ -73,7 +77,7 @@ static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
 
 	alpm_list_t *j;
 	struct _alpm_resolver_pkg *rpkg = malloc(sizeof(struct _alpm_resolver_pkg));
-	alpm_list_append(graph, rpkg);
+	alpm_list_append(&(graph->pkg_nodes), rpkg);
 
 	rpkg->pkg = pkg;
 	rpkg->owners = NULL;
@@ -82,30 +86,42 @@ static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
 	rpkg->picked = 0;
 
 	for(j = alpm_pkg_get_depends(pkg); j; j = j->next) {
-		struct _alpm_resolver_dep *rdep;
+		alpm_depend_t *dep = j->data;
+		struct _alpm_resolver_dep *rdep = NULL;
 		if(_alpm_depcmp_provides(j->data, handle->assumeinstalled)) {
 			continue;
 		}
-
-		rdep = malloc(sizeof(struct _alpm_resolver_dep));
-		alpm_list_t *satisfiers = _alpm_resolver_satisfiers(j->data, pool, flags);
-		alpm_list_append(&(rpkg->rdeps), rdep);
-		rdep->satisfiers = NULL;
-		rdep->dep = j->data;
-		rdep->rpkg = rpkg;
-		if(satisfiers == NULL) {
-			return NULL;
+		for(i = graph->dep_nodes; i; i = i->next) {
+			struct _alpm_resolver_dep *rdep2 = i->data;
+			alpm_depend_t *dep2 = rdep2->dep;
+			if(dep->name_hash == dep2->name_hash && dep->mod == dep2->mod
+					&& ((dep->version == NULL && dep2->version == NULL) || (dep->version && dep2->version && strcmp(dep->version, dep2->version) == 0))
+					&& strcmp(dep->name, dep2->name) == 0) {
+				rdep = rdep2;
+			}
 		}
-		for(i = satisfiers; i; i = i->next) {
-			rpkg_t *satisfier = _alpm_resolver_extend_graph(handle, graph, i->data, pool, flags);
-			if(satisfier == NULL) {
-				alpm_list_free(satisfiers);
+
+		if(rdep == NULL) {
+			rdep = malloc(sizeof(struct _alpm_resolver_dep));
+			alpm_list_t *satisfiers = _alpm_resolver_satisfiers(j->data, pool, flags);
+			rdep->satisfiers = NULL;
+			rdep->dep = dep;
+			if(satisfiers == NULL) {
 				return NULL;
 			}
-			alpm_list_append(&(rdep->satisfiers), satisfier);
-			alpm_list_append(&(satisfier->owners), rdep);
+			for(i = satisfiers; i; i = i->next) {
+				rpkg_t *satisfier = _alpm_resolver_extend_graph(handle, graph, i->data, pool, flags);
+				if(satisfier == NULL) {
+					alpm_list_free(satisfiers);
+					return NULL;
+				}
+				alpm_list_append(&(rdep->satisfiers), satisfier);
+				alpm_list_append(&(satisfier->owners), rdep);
+			}
+			alpm_list_free(satisfiers);
 		}
-		alpm_list_free(satisfiers);
+
+		alpm_list_append(&(rpkg->rdeps), rdep);
 	}
 	return rpkg;
 }
@@ -234,10 +250,10 @@ static int _alpm_resolver_pkgs_conflict(alpm_pkg_t *pkg1, alpm_pkg_t *pkg2) {
 	return 0;
 }
 
-static alpm_list_t *_alpm_resolver_find_conflicts(alpm_list_t *graph)
+static alpm_list_t *_alpm_resolver_find_conflicts(struct _alpm_dep_graph *graph)
 {
 	alpm_list_t *i, *j, *conflicts = NULL;
-	for(i = graph; i; i = i->next) {
+	for(i = graph->pkg_nodes; i; i = i->next) {
 		rpkg_t *rpkg1 = i->data;
 		for(j = i->next; j; j = j->next) {
 			rpkg_t *rpkg2 = j->data;
@@ -252,7 +268,7 @@ static alpm_list_t *_alpm_resolver_find_conflicts(alpm_list_t *graph)
 	return conflicts;
 }
 
-static alpm_list_t *_alpm_resolver_solve(alpm_list_t *graph, alpm_list_t *roots)
+static alpm_list_t *_alpm_resolver_solve(struct _alpm_dep_graph *graph, alpm_list_t *roots)
 {
 	alpm_list_t *i;
 	alpm_list_t *conflicts = _alpm_resolver_find_conflicts(graph);
@@ -270,7 +286,8 @@ static alpm_list_t *_alpm_resolver_solve(alpm_list_t *graph, alpm_list_t *roots)
 
 alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add, alpm_list_t *remove, int flags)
 {
-	alpm_list_t *i, *graph = NULL, *roots = NULL;
+	struct _alpm_dep_graph graph = { NULL, NULL };
+	alpm_list_t *i, *roots = NULL;
 	alpm_list_t *pool = NULL;
 	alpm_list_t *solution = NULL;
 
@@ -314,23 +331,12 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 			alpm_list_append(&roots, rpkg);
 		}
 	}
-	solution = _alpm_resolver_solve(graph, roots);
+	solution = _alpm_resolver_solve(&graph, roots);
 
 cleanup:
-	for(i = graph; i; i = i->next) {
-		rpkg_t *rpkg = i->data;
-		alpm_list_t *j;
-		for(j = rpkg->rdeps; j; j = j->next) {
-			rdep_t *rdep = j->data;
-			alpm_list_free(rdep->satisfiers);
-			free(rdep);
-		}
-		alpm_list_free(rpkg->rdeps);
-		alpm_list_free(rpkg->owners);
-		free(rpkg);
-	}
+	FREELIST(graph.pkg_nodes);
+	FREELIST(graph.dep_nodes);
 	alpm_list_free(pool);
-	alpm_list_free(graph);
 	alpm_list_free(roots);
 
 	return solution;
