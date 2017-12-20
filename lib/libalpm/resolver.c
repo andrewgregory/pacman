@@ -51,6 +51,7 @@ static alpm_list_t *_alpm_resolver_satisfiers(alpm_depend_t *dep, alpm_list_t *p
 	for(i = pool; i; i = i->next) {
 		if(_alpm_depcmp(i->data, dep)) {
 			alpm_list_append(&satisfiers, i->data);
+			return satisfiers;
 		}
 	}
 	dep->mod = mod;
@@ -69,7 +70,6 @@ static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
 			return rpkg;
 		}
 	}
-	printf("extending graph with %s/%s\n", pkg->origin == ALPM_PKG_FROM_LOCALDB ? "local" : "sync", pkg->name);
 
 	alpm_list_t *j;
 	struct _alpm_resolver_pkg *rpkg = malloc(sizeof(struct _alpm_resolver_pkg));
@@ -93,16 +93,13 @@ static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
 		rdep->satisfiers = NULL;
 		rdep->dep = j->data;
 		rdep->rpkg = rpkg;
-		printf("resolving %s/%s dep %s\n", PKGORIGIN(pkg), pkg->name, rdep->dep->name);
 		if(satisfiers == NULL) {
-			printf("no satisfiers found for %s %s\n", pkg->name, rdep->dep->name);
 			return NULL;
 		}
 		for(i = satisfiers; i; i = i->next) {
 			rpkg_t *satisfier = _alpm_resolver_extend_graph(handle, graph, i->data, pool, flags);
 			if(satisfier == NULL) {
 				alpm_list_free(satisfiers);
-				puts("extend graph failed");
 				return NULL;
 			}
 			alpm_list_append(&(rdep->satisfiers), satisfier);
@@ -120,9 +117,7 @@ static void _alpm_resolver_reduce(rpkg_t *rpkg, alpm_list_t **solution)
 		return;
 	}
 	rpkg->picked = 1;
-	printf("reducing %s\n", rpkg->pkg->name);
 	if(rpkg->pkg->origin != ALPM_PKG_FROM_LOCALDB) {
-		printf("appending %s\n", rpkg->pkg->name);
 		alpm_list_append(solution, rpkg->pkg);
 	}
 	for(i = rpkg->rdeps; i; i = i->next) {
@@ -156,16 +151,10 @@ static int _alpm_resolver_solve_conflicts(alpm_list_t *conflicts, alpm_list_t *r
 		return _alpm_resolver_solve_conflicts(conflicts->next, roots);
 	}
 
-	printf("resolving %s/%s - %s/%s\n",
-			PKGORIGIN(conflict->rpkg1->pkg), conflict->rpkg1->pkg->name,
-			PKGORIGIN(conflict->rpkg2->pkg), conflict->rpkg2->pkg->name);
-
 	/* rpkg1 is the preferred package, try disabling rpkg2 first */
 	/* check if rpkg2 can be disabled */
 	for(i = roots; i && pkg2_can_be_disabled; i = i->next) {
 		if(conflict->rpkg2 == i->data && conflict->rpkg2->pkg->origin != ALPM_PKG_FROM_LOCALDB) {
-			printf("%s/%s cannot be disabled because it is a root\n",
-					PKGORIGIN(conflict->rpkg2->pkg), conflict->rpkg2->pkg->name);
 			pkg2_can_be_disabled = 0;
 		}
 	}
@@ -180,17 +169,12 @@ static int _alpm_resolver_solve_conflicts(alpm_list_t *conflicts, alpm_list_t *r
 				}
 			}
 			if(!dep_has_alt_satisfier) {
-				printf("%s/%s cannot be disabled because it is a sole dependency of %s/%s\n",
-						PKGORIGIN(conflict->rpkg2->pkg), conflict->rpkg2->pkg->name,
-						PKGORIGIN(rdep->rpkg->pkg), rdep->rpkg->pkg->name);
 				pkg2_can_be_disabled = 0;
 			}
 	}
 	if(pkg2_can_be_disabled) {
 		conflict->rpkg2->disabled = 1;
 		if(_alpm_resolver_solve_conflicts(conflicts->next, roots) == 0) {
-			printf("disabling %s/%s\n",
-					PKGORIGIN(conflict->rpkg2->pkg), conflict->rpkg2->pkg->name);
 			return 0;
 		}
 		conflict->rpkg2->disabled = 0;
@@ -200,8 +184,6 @@ static int _alpm_resolver_solve_conflicts(alpm_list_t *conflicts, alpm_list_t *r
 	for(i = roots; i && pkg1_can_be_disabled; i = i->next) {
 		if(conflict->rpkg1 == i->data && conflict->rpkg1->pkg->origin != ALPM_PKG_FROM_LOCALDB) {
 			pkg1_can_be_disabled = 0;
-			printf("%s/%s cannot be disabled because it is a root\n",
-					PKGORIGIN(conflict->rpkg1->pkg), conflict->rpkg1->pkg->name);
 		}
 	}
 	for(i = conflict->rpkg1->owners; i && pkg1_can_be_disabled; i = i->next) {
@@ -210,31 +192,22 @@ static int _alpm_resolver_solve_conflicts(alpm_list_t *conflicts, alpm_list_t *r
 			alpm_list_t *k;
 			for(k = rdep->satisfiers; k && !dep_has_alt_satisfier; k = k->next) {
 				rpkg_t *satisfier = k->data;
-				printf("satisfier - %s/%s - %s\n",
-						PKGORIGIN(satisfier->pkg), satisfier->pkg->name, satisfier->disabled ? "disabled" : "enabled");
 				if(satisfier != conflict->rpkg1 && !satisfier->disabled) {
 					dep_has_alt_satisfier = 1;
 				}
 			}
 			if(!dep_has_alt_satisfier) {
-				printf("%s/%s cannot be disabled because it is a sole dependency of %s/%s\n",
-						PKGORIGIN(conflict->rpkg1->pkg), conflict->rpkg1->pkg->name,
-						PKGORIGIN(rdep->rpkg->pkg), rdep->rpkg->pkg->name);
 				pkg1_can_be_disabled = 0;
 			}
 	}
 	if(pkg1_can_be_disabled) {
 		conflict->rpkg1->disabled = 1;
 		if(_alpm_resolver_solve_conflicts(conflicts->next, roots) == 0) {
-			printf("disabling %s/%s\n",
-					PKGORIGIN(conflict->rpkg1->pkg), conflict->rpkg1->pkg->name);
 			return 0;
 		}
 		conflict->rpkg1->disabled = 0;
 	}
 
-	printf("unable to resolve conflict between %s - %s\n",
-			conflict->rpkg1->pkg->name, conflict->rpkg2->pkg->name);
 	return -1;
 }
 
@@ -242,14 +215,12 @@ static int _alpm_resolver_pkgs_conflict(alpm_pkg_t *pkg1, alpm_pkg_t *pkg2) {
 	alpm_list_t *i;
 	/* all packages conflict with alternate versions of themselves */
 	if(strcmp(pkg1->name, pkg2->name) == 0) {
-		printf("%s conflicts with %s\n", pkg1->name, pkg2->name);
 		return 1;
 	}
 	/* check conflicts in one direction */
 	for(i = alpm_pkg_get_conflicts(pkg1); i; i = i->next) {
 		alpm_depend_t *conflict = i->data;
 		if(_alpm_depcmp(pkg2, conflict)) {
-		printf("%s conflicts with %s\n", pkg1->name, pkg2->name);
 			return 1;
 		}
 	}
@@ -257,7 +228,6 @@ static int _alpm_resolver_pkgs_conflict(alpm_pkg_t *pkg1, alpm_pkg_t *pkg2) {
 	for(i = alpm_pkg_get_conflicts(pkg2); i; i = i->next) {
 		alpm_depend_t *conflict = i->data;
 		if(_alpm_depcmp(pkg1, conflict)) {
-		printf("%s conflicts with %s\n", pkg1->name, pkg2->name);
 			return 1;
 		}
 	}
@@ -271,7 +241,6 @@ static alpm_list_t *_alpm_resolver_find_conflicts(alpm_list_t *graph)
 		rpkg_t *rpkg1 = i->data;
 		for(j = i->next; j; j = j->next) {
 			rpkg_t *rpkg2 = j->data;
-			printf("checking conflict %s %s\n", rpkg1->pkg->name, rpkg2->pkg->name);
 			if(_alpm_resolver_pkgs_conflict(rpkg1->pkg, rpkg2->pkg)) {
 				rconflict_t *rconflict = malloc(sizeof(rconflict_t));
 				rconflict->rpkg1 = rpkg1;
@@ -289,7 +258,6 @@ static alpm_list_t *_alpm_resolver_solve(alpm_list_t *graph, alpm_list_t *roots)
 	alpm_list_t *conflicts = _alpm_resolver_find_conflicts(graph);
 	alpm_list_t *solution = NULL;
 	if(_alpm_resolver_solve_conflicts(conflicts, roots) != 0) {
-		puts("solve conflicts failed");
 		FREELIST(conflicts);
 		return NULL;
 	}
@@ -306,17 +274,13 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 	alpm_list_t *pool = NULL;
 	alpm_list_t *solution = NULL;
 
-	puts("resolvedeps_thorough");
-
 	for(i = add; i; i = i->next) {
 		alpm_pkg_t *pkg = i->data;
-		printf("appending add/%s to pool\n", pkg->name);
 		alpm_list_append(&pool, pkg);
 	}
 	for(i = _alpm_db_get_pkgcache(handle->db_local); i; i = i->next) {
 		alpm_pkg_t *pkg = i->data;
 		if(!alpm_pkg_find(add, pkg->name) && !alpm_pkg_find(remove, pkg->name)) {
-			printf("appending local/%s to pool\n", pkg->name);
 			alpm_list_append(&pool, pkg);
 		}
 	}
@@ -325,7 +289,6 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 		for(j = _alpm_db_get_pkgcache(i->data); j; j = j->next) {
 			alpm_pkg_t *pkg = j->data;
 			if(!alpm_pkg_find(add, pkg->name) && !alpm_pkg_find(remove, pkg->name) && !alpm_pkg_should_ignore(handle, pkg)) {
-				printf("appending sync/%s to pool\n", pkg->name);
 				alpm_list_append(&pool, pkg);
 			}
 		}
@@ -335,7 +298,6 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 		/* seed the graph with packages we know we need */
 		rpkg_t *rpkg = _alpm_resolver_extend_graph(handle, &graph, i->data, pool, flags);
 		if(rpkg == NULL) {
-			puts("extend graph failed");
 			goto cleanup;
 		}
 		alpm_list_append(&roots, rpkg);
@@ -347,15 +309,12 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 		if(!alpm_pkg_find(add, pkg->name) && !alpm_pkg_find(remove, pkg->name)) {
 			rpkg_t *rpkg = _alpm_resolver_extend_graph(handle, &graph, pkg, pool, flags);
 			if(rpkg == NULL) {
-				puts("extend graph failed");
 				goto cleanup;
 			}
 			alpm_list_append(&roots, rpkg);
 		}
 	}
 	solution = _alpm_resolver_solve(graph, roots);
-	printf("solution: %zd graph: %zd roots: %zd\n", alpm_list_count(solution), alpm_list_count(graph), alpm_list_count(roots));
-	puts("resolvedeps_cleanup");
 
 cleanup:
 	for(i = graph; i; i = i->next) {
@@ -373,8 +332,6 @@ cleanup:
 	alpm_list_free(pool);
 	alpm_list_free(graph);
 	alpm_list_free(roots);
-
-	puts(solution ? "found solution" : "no solution found");
 
 	return solution;
 }

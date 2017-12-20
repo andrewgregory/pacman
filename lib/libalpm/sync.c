@@ -380,7 +380,7 @@ finish:
 int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 {
 	alpm_list_t *i, *j;
-	alpm_list_t *deps = NULL;
+	/* alpm_list_t *deps = NULL; */
 	alpm_list_t *unresolvable = NULL;
 	int from_sync = 0;
 	int ret = 0;
@@ -539,6 +539,7 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 		EVENT(handle, &event);
 	}
 
+#if 0
 	if(!(trans->flags & ALPM_TRANS_FLAG_NOCONFLICTS)) {
 		/* check for inter-conflicts and whatnot */
 		event.type = ALPM_EVENT_INTERCONFLICTS_START;
@@ -663,6 +664,7 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 		alpm_list_free_inner(deps, (alpm_list_fn_free)alpm_conflict_free);
 		alpm_list_free(deps);
 	}
+#endif
 
 	/* Build trans->remove list */
 	for(i = trans->add; i; i = i->next) {
@@ -680,6 +682,7 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 		}
 	}
 
+#if 0
 	if(!(trans->flags & ALPM_TRANS_FLAG_NODEPS)) {
 		_alpm_log(handle, ALPM_LOG_DEBUG, "checking dependencies\n");
 		deps = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle->db_local),
@@ -697,6 +700,8 @@ int _alpm_sync_prepare(alpm_handle_t *handle, alpm_list_t **data)
 			goto cleanup;
 		}
 	}
+#endif
+
 	for(i = trans->add; i; i = i->next) {
 		/* update download size field */
 		alpm_pkg_t *spkg = i->data;
