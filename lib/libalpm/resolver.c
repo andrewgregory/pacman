@@ -8,6 +8,8 @@
 #include <limits.h>
 #include <string.h>
 
+#define debug(...) printf(__VA_ARGS__)
+
 static size_t _alpm_hash_pkg(void *pkg) {
 	return (size_t)pkg;
 }
@@ -35,6 +37,10 @@ static int _alpm_cmp_dep(void *i1, void *i2) {
 #include "mhashtable.c"
 
 struct _alpm_dep_graph {
+	alpm_handle_t *handle;
+	alpm_list_t *pool;
+	int flags;
+
 	alpm_list_t *pkg_nodes;
 	alpm_list_t *dep_nodes;
 	mht_t *pkg_hash;
@@ -52,6 +58,7 @@ struct _alpm_resolver_pkg {
 struct _alpm_resolver_dep {
 	alpm_depend_t *dep;
 	alpm_list_t *satisfiers;
+	alpm_list_t *emark, *pmark;
 };
 
 struct _alpm_resolver_conflict {
@@ -74,23 +81,56 @@ typedef struct _alpm_resolver_pkg rpkg_t;
 typedef struct _alpm_resolver_dep rdep_t;
 typedef struct _alpm_resolver_conflict rconflict_t;
 
-static alpm_list_t *_alpm_resolver_satisfiers(alpm_depend_t *dep, alpm_list_t *pool, int flags)
+static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
+		struct _alpm_dep_graph *graph, alpm_pkg_t *pkg);
+
+static alpm_list_t *_alpm_rdep_find_satisfier(struct _alpm_dep_graph *graph, rdep_t *rdep)
 {
-	alpm_list_t *i, *satisfiers = NULL;
-	alpm_depmod_t mod = dep->mod;
-	if(flags & ALPM_RESOLVER_IGNORE_DEPENDENCY_VERSION) {
-		dep->mod = ALPM_DEP_MOD_ANY;
+	alpm_depend_t *d = rdep->dep;
+	alpm_depmod_t mod = d->mod;
+	alpm_pkg_t *satisfier = NULL;
+
+	if(graph->flags & ALPM_RESOLVER_IGNORE_DEPENDENCY_VERSION) {
+		d->mod = ALPM_DEP_MOD_ANY;
 	}
-	for(i = pool; i; i = i->next) {
-		if(_alpm_depcmp(i->data, dep)) {
-			alpm_list_append(&satisfiers, i->data);
+
+	while(rdep->emark && !satisfier) {
+		alpm_pkg_t *p = rdep->emark->data;
+		if(p->name_hash == d->name_hash && _alpm_depcmp_literal(p, d)) {
+			satisfier = p;
 		}
+		rdep->emark = rdep->emark->next;
 	}
-	dep->mod = mod;
-	return satisfiers;
+	while(rdep->pmark && !satisfier) {
+		alpm_pkg_t *p = rdep->pmark->data;
+		if(_alpm_depcmp_provides(d, alpm_pkg_get_provides(p))) {
+			satisfier = p;
+		}
+		rdep->pmark = rdep->pmark->next;
+	}
+
+	d->mod = mod;
+
+	if(satisfier) {
+		rpkg_t *rpkg = _alpm_resolver_extend_graph(graph, satisfier);
+		alpm_list_append(&(rpkg->owners), rdep);
+		debug("found %s satisfier for %s %s\n", satisfier->name, d->name, d->version);
+		return alpm_list_append(&(rdep->satisfiers), rpkg);
+	}
+
+	debug("unable to find satisfier for %s %s\n", d->name, d->version);
+	return NULL;
 }
 
-#define PKGORIGIN(x) (x)->origin == ALPM_PKG_FROM_LOCALDB ? "local" : "sync"
+static alpm_list_t *_alpm_rdep_first_satisfier(struct _alpm_dep_graph *graph, rdep_t *rdep)
+{
+	return rdep->satisfiers ? rdep->satisfiers : _alpm_rdep_find_satisfier(graph, rdep);
+}
+
+static alpm_list_t *_alpm_rdep_next_satisfier(struct _alpm_dep_graph *graph, rdep_t *rdep, alpm_list_t *i)
+{
+	return i->next ? i->next : _alpm_rdep_find_satisfier(graph, rdep);
+}
 
 static rpkg_t *_alpm_graph_find_pkg(struct _alpm_dep_graph *graph, alpm_pkg_t *pkg)
 {
@@ -107,9 +147,9 @@ static rpkg_t *_alpm_graph_find_pkg(struct _alpm_dep_graph *graph, alpm_pkg_t *p
 }
 
 static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
-		alpm_handle_t *handle, struct _alpm_dep_graph *graph, alpm_pkg_t *pkg, alpm_list_t *pool, int flags)
+		struct _alpm_dep_graph *graph, alpm_pkg_t *pkg)
 {
-	alpm_list_t *i, *j;
+	alpm_list_t *j;
 	rpkg_t *rpkg = NULL;
 
 	if((rpkg = _alpm_graph_find_pkg(graph, pkg))) {
@@ -129,28 +169,21 @@ static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
 	for(j = alpm_pkg_get_depends(pkg); j; j = j->next) {
 		alpm_depend_t *dep = j->data;
 		struct _alpm_resolver_dep *rdep = NULL;
-		if(_alpm_depcmp_provides(j->data, handle->assumeinstalled)) {
+		if(_alpm_depcmp_provides(j->data, graph->handle->assumeinstalled)) {
 			continue;
 		}
 		rdep = mht_get_value(graph->dep_hash, dep);
 		if(rdep == NULL) {
 			rdep = malloc(sizeof(struct _alpm_resolver_dep));
-			alpm_list_t *satisfiers = _alpm_resolver_satisfiers(j->data, pool, flags);
 			rdep->satisfiers = NULL;
 			rdep->dep = dep;
-			if(satisfiers == NULL) {
+			rdep->emark = graph->pool;
+			rdep->pmark = graph->pool;
+
+			if(!_alpm_rdep_first_satisfier(graph, rdep)) {
 				return NULL;
 			}
-			for(i = satisfiers; i; i = i->next) {
-				rpkg_t *satisfier = _alpm_resolver_extend_graph(handle, graph, i->data, pool, flags);
-				if(satisfier == NULL) {
-					alpm_list_free(satisfiers);
-					return NULL;
-				}
-				alpm_list_append(&(rdep->satisfiers), satisfier);
-				alpm_list_append(&(satisfier->owners), rdep);
-			}
-			alpm_list_free(satisfiers);
+
 			alpm_list_append(&(graph->dep_nodes), rdep);
 			mht_set_value(graph->dep_hash, dep, rdep);
 		}
@@ -182,7 +215,7 @@ static void _alpm_resolver_reduce(rpkg_t *rpkg, alpm_list_t **solution)
 	}
 }
 
-static int _alpm_resolver_solve_conflicts(alpm_list_t *conflicts, alpm_list_t *roots)
+static int _alpm_resolver_solve_conflicts(struct _alpm_dep_graph *graph, alpm_list_t *conflicts, alpm_list_t *roots)
 {
 	/* grab the first conflict */
 	rconflict_t *conflict;
@@ -196,9 +229,11 @@ static int _alpm_resolver_solve_conflicts(alpm_list_t *conflicts, alpm_list_t *r
 
 	conflict = conflicts->data;
 
+	debug("resolving conflict %s %s\n", conflict->rpkg1->pkg->name, conflict->rpkg2->pkg->name);
+
 	/* check if conflict has already been resolved */
 	if(conflict->rpkg1->disabled || conflict->rpkg2->disabled) {
-		return _alpm_resolver_solve_conflicts(conflicts->next, roots);
+		return _alpm_resolver_solve_conflicts(graph, conflicts->next, roots);
 	}
 
 	/* rpkg1 is the preferred package, try disabling rpkg2 first */
@@ -212,7 +247,7 @@ static int _alpm_resolver_solve_conflicts(alpm_list_t *conflicts, alpm_list_t *r
 			rdep_t *rdep = i->data;
 			int dep_has_alt_satisfier = 0;
 			alpm_list_t *k;
-			for(k = rdep->satisfiers; k && !dep_has_alt_satisfier; k = k->next) {
+			for(k = _alpm_rdep_first_satisfier(graph, rdep); k && !dep_has_alt_satisfier; k = _alpm_rdep_next_satisfier(graph, rdep, k)) {
 				rpkg_t *satisfier = k->data;
 				if(satisfier != conflict->rpkg2 && !satisfier->disabled) {
 					dep_has_alt_satisfier = 1;
@@ -224,7 +259,7 @@ static int _alpm_resolver_solve_conflicts(alpm_list_t *conflicts, alpm_list_t *r
 	}
 	if(pkg2_can_be_disabled) {
 		conflict->rpkg2->disabled = 1;
-		if(_alpm_resolver_solve_conflicts(conflicts->next, roots) == 0) {
+		if(_alpm_resolver_solve_conflicts(graph, conflicts->next, roots) == 0) {
 			return 0;
 		}
 		conflict->rpkg2->disabled = 0;
@@ -240,7 +275,7 @@ static int _alpm_resolver_solve_conflicts(alpm_list_t *conflicts, alpm_list_t *r
 			rdep_t *rdep = i->data;
 			int dep_has_alt_satisfier = 0;
 			alpm_list_t *k;
-			for(k = rdep->satisfiers; k && !dep_has_alt_satisfier; k = k->next) {
+			for(k = _alpm_rdep_first_satisfier(graph, rdep); k && !dep_has_alt_satisfier; k = _alpm_rdep_next_satisfier(graph, rdep, k)) {
 				rpkg_t *satisfier = k->data;
 				if(satisfier != conflict->rpkg1 && !satisfier->disabled) {
 					dep_has_alt_satisfier = 1;
@@ -252,7 +287,7 @@ static int _alpm_resolver_solve_conflicts(alpm_list_t *conflicts, alpm_list_t *r
 	}
 	if(pkg1_can_be_disabled) {
 		conflict->rpkg1->disabled = 1;
-		if(_alpm_resolver_solve_conflicts(conflicts->next, roots) == 0) {
+		if(_alpm_resolver_solve_conflicts(graph, conflicts->next, roots) == 0) {
 			return 0;
 		}
 		conflict->rpkg1->disabled = 0;
@@ -307,7 +342,7 @@ static alpm_list_t *_alpm_resolver_solve(struct _alpm_dep_graph *graph, alpm_lis
 	alpm_list_t *i;
 	alpm_list_t *conflicts = _alpm_resolver_find_conflicts(graph);
 	alpm_list_t *solution = NULL;
-	if(_alpm_resolver_solve_conflicts(conflicts, roots) != 0) {
+	if(_alpm_resolver_solve_conflicts(graph, conflicts, roots) != 0) {
 		FREELIST(conflicts);
 		return NULL;
 	}
@@ -320,10 +355,15 @@ static alpm_list_t *_alpm_resolver_solve(struct _alpm_dep_graph *graph, alpm_lis
 
 alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add, alpm_list_t *remove, int flags)
 {
-	struct _alpm_dep_graph graph = { NULL, NULL, NULL, NULL };
+	struct _alpm_dep_graph graph;
 	alpm_list_t *i, *roots = NULL;
-	alpm_list_t *pool = NULL;
 	alpm_list_t *solution = NULL;
+
+	graph.pkg_nodes = NULL;
+	graph.dep_nodes = NULL;
+	graph.handle = handle;
+	graph.flags = flags;
+	graph.pool = NULL;
 
 	graph.pkg_hash = mht_new(0);
 	graph.pkg_hash->hashfn = _alpm_hash_pkg;
@@ -335,12 +375,12 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 
 	for(i = add; i; i = i->next) {
 		alpm_pkg_t *pkg = i->data;
-		alpm_list_append(&pool, pkg);
+		alpm_list_append(&graph.pool, pkg);
 	}
 	for(i = _alpm_db_get_pkgcache(handle->db_local); i; i = i->next) {
 		alpm_pkg_t *pkg = i->data;
 		if(!alpm_pkg_find(add, pkg->name) && !alpm_pkg_find(remove, pkg->name)) {
-			alpm_list_append(&pool, pkg);
+			alpm_list_append(&graph.pool, pkg);
 		}
 	}
 	for(i = handle->dbs_sync; i; i = i->next) {
@@ -348,14 +388,14 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 		for(j = _alpm_db_get_pkgcache(i->data); j; j = j->next) {
 			alpm_pkg_t *pkg = j->data;
 			if(!alpm_pkg_find(add, pkg->name) && !alpm_pkg_find(remove, pkg->name) && !alpm_pkg_should_ignore(handle, pkg)) {
-				alpm_list_append(&pool, pkg);
+				alpm_list_append(&graph.pool, pkg);
 			}
 		}
 	}
 
 	for(i = add; i; i = i->next) {
 		/* seed the graph with packages we know we need */
-		rpkg_t *rpkg = _alpm_resolver_extend_graph(handle, &graph, i->data, pool, flags);
+		rpkg_t *rpkg = _alpm_resolver_extend_graph(&graph, i->data);
 		if(rpkg == NULL) {
 			goto cleanup;
 		}
@@ -366,7 +406,7 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 		 * break their dependencies */
 		alpm_pkg_t *pkg = i->data;
 		if(!alpm_pkg_find(add, pkg->name) && !alpm_pkg_find(remove, pkg->name)) {
-			rpkg_t *rpkg = _alpm_resolver_extend_graph(handle, &graph, pkg, pool, flags);
+			rpkg_t *rpkg = _alpm_resolver_extend_graph(&graph, pkg);
 			if(rpkg == NULL) {
 				goto cleanup;
 			}
@@ -378,7 +418,6 @@ alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add,
 cleanup:
 	FREELIST(graph.pkg_nodes);
 	FREELIST(graph.dep_nodes);
-	alpm_list_free(pool);
 	alpm_list_free(roots);
 
 	return solution;
