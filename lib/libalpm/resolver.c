@@ -5,11 +5,40 @@
 #include "db.h"
 #include "handle.h"
 
+#include <limits.h>
 #include <string.h>
+
+static size_t _alpm_hash_pkg(void *pkg) {
+	return (size_t)pkg;
+}
+
+static int _alpm_cmp_pkg(void *i1, void *i2) {
+	return i1 < i2 ? -1 : i1 > i2 ? 1 : 0;
+}
+
+static size_t _alpm_hash_dep(void *dep) {
+	return ((alpm_depend_t *) dep)->name_hash;
+}
+
+static int _alpm_cmp_dep(void *i1, void *i2) {
+	alpm_depend_t *dep = i1;
+	alpm_depend_t *dep2 = i2;
+	return (dep->name_hash == dep2->name_hash && dep->mod == dep2->mod
+		&& ((dep->version == NULL && dep2->version == NULL)
+				|| (dep->version && dep2->version && strcmp(dep->version, dep2->version) == 0))
+		&& strcmp(dep->name, dep2->name) == 0) ? 0 : 1;
+}
+
+#define MHT_KEY_TYPE void*
+#define MHT_DEFAULT_CMPFN _alpm_cmp_pkg
+#define MHT_DEFAULT_HASHFN _alpm_hash_pkg
+#include "mhashtable.c"
 
 struct _alpm_dep_graph {
 	alpm_list_t *pkg_nodes;
 	alpm_list_t *dep_nodes;
+	mht_t *pkg_hash;
+	mht_t *dep_hash;
 };
 
 struct _alpm_resolver_pkg {
@@ -64,9 +93,9 @@ static alpm_list_t *_alpm_resolver_satisfiers(alpm_depend_t *dep, alpm_list_t *p
 
 #define PKGORIGIN(x) (x)->origin == ALPM_PKG_FROM_LOCALDB ? "local" : "sync"
 
-static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
-		alpm_handle_t *handle, struct _alpm_dep_graph *graph, alpm_pkg_t *pkg, alpm_list_t *pool, int flags)
+static rpkg_t *_alpm_graph_find_pkg(struct _alpm_dep_graph *graph, alpm_pkg_t *pkg)
 {
+#if 0
 	alpm_list_t *i;
 	for(i = graph->pkg_nodes; i; i = i->next) {
 		rpkg_t *rpkg = i->data;
@@ -74,10 +103,23 @@ static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
 			return rpkg;
 		}
 	}
+#endif
+	return mht_get_value(graph->pkg_hash, pkg);
+}
 
-	alpm_list_t *j;
-	struct _alpm_resolver_pkg *rpkg = malloc(sizeof(struct _alpm_resolver_pkg));
+static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
+		alpm_handle_t *handle, struct _alpm_dep_graph *graph, alpm_pkg_t *pkg, alpm_list_t *pool, int flags)
+{
+	alpm_list_t *i, *j;
+	rpkg_t *rpkg = NULL;
+
+	if((rpkg = _alpm_graph_find_pkg(graph, pkg))) {
+		return rpkg;
+	}
+
+	rpkg = malloc(sizeof(struct _alpm_resolver_pkg));
 	alpm_list_append(&(graph->pkg_nodes), rpkg);
+	mht_set_value(graph->pkg_hash, pkg, rpkg);
 
 	rpkg->pkg = pkg;
 	rpkg->owners = NULL;
@@ -91,17 +133,7 @@ static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
 		if(_alpm_depcmp_provides(j->data, handle->assumeinstalled)) {
 			continue;
 		}
-		for(i = graph->dep_nodes; i; i = i->next) {
-			struct _alpm_resolver_dep *rdep2 = i->data;
-			alpm_depend_t *dep2 = rdep2->dep;
-			if(dep->name_hash == dep2->name_hash && dep->mod == dep2->mod
-					&& ((dep->version == NULL && dep2->version == NULL)
-						|| (dep->version && dep2->version && strcmp(dep->version, dep2->version) == 0))
-					&& strcmp(dep->name, dep2->name) == 0) {
-				rdep = rdep2;
-			}
-		}
-
+		rdep = mht_get_value(graph->dep_hash, dep);
 		if(rdep == NULL) {
 			rdep = malloc(sizeof(struct _alpm_resolver_dep));
 			alpm_list_t *satisfiers = _alpm_resolver_satisfiers(j->data, pool, flags);
@@ -120,6 +152,8 @@ static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
 				alpm_list_append(&(satisfier->owners), rdep);
 			}
 			alpm_list_free(satisfiers);
+			alpm_list_append(&(graph->dep_nodes), rdep);
+			mht_set_value(graph->dep_hash, dep, rdep);
 		}
 
 		alpm_list_append(&(rpkg->rdeps), rdep);
@@ -287,10 +321,18 @@ static alpm_list_t *_alpm_resolver_solve(struct _alpm_dep_graph *graph, alpm_lis
 
 alpm_list_t *_alpm_resolvedeps_thorough(alpm_handle_t *handle, alpm_list_t *add, alpm_list_t *remove, int flags)
 {
-	struct _alpm_dep_graph graph = { NULL, NULL };
+	struct _alpm_dep_graph graph = { NULL, NULL, NULL, NULL };
 	alpm_list_t *i, *roots = NULL;
 	alpm_list_t *pool = NULL;
 	alpm_list_t *solution = NULL;
+
+	graph.pkg_hash = mht_new(0);
+	graph.pkg_hash->hashfn = _alpm_hash_pkg;
+	graph.pkg_hash->cmpfn = _alpm_cmp_pkg;
+
+	graph.dep_hash = mht_new(0);
+	graph.dep_hash->hashfn = _alpm_hash_dep;
+	graph.dep_hash->cmpfn = _alpm_cmp_dep;
 
 	for(i = add; i; i = i->next) {
 		alpm_pkg_t *pkg = i->data;
