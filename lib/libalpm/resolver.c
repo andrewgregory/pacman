@@ -84,7 +84,6 @@ static alpm_list_t *_alpm_resolver_satisfiers(alpm_depend_t *dep, alpm_list_t *p
 	for(i = pool; i; i = i->next) {
 		if(_alpm_depcmp(i->data, dep)) {
 			alpm_list_append(&satisfiers, i->data);
-			return satisfiers;
 		}
 	}
 	dep->mod = mod;
