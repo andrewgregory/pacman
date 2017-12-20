@@ -95,7 +95,8 @@ static struct _alpm_resolver_pkg *_alpm_resolver_extend_graph(
 			struct _alpm_resolver_dep *rdep2 = i->data;
 			alpm_depend_t *dep2 = rdep2->dep;
 			if(dep->name_hash == dep2->name_hash && dep->mod == dep2->mod
-					&& ((dep->version == NULL && dep2->version == NULL) || (dep->version && dep2->version && strcmp(dep->version, dep2->version) == 0))
+					&& ((dep->version == NULL && dep2->version == NULL)
+						|| (dep->version && dep2->version && strcmp(dep->version, dep2->version) == 0))
 					&& strcmp(dep->name, dep2->name) == 0) {
 				rdep = rdep2;
 			}
