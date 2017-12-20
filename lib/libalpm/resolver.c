@@ -198,9 +198,6 @@ static void _alpm_resolver_reduce(rpkg_t *rpkg, alpm_list_t **solution)
 		return;
 	}
 	rpkg->picked = 1;
-	if(rpkg->pkg->origin != ALPM_PKG_FROM_LOCALDB) {
-		alpm_list_append(solution, rpkg->pkg);
-	}
 	for(i = rpkg->rdeps; i; i = i->next) {
 		rdep_t *rdep = i->data;
 		for(j = rdep->satisfiers; j; j = j->next) {
@@ -210,6 +207,9 @@ static void _alpm_resolver_reduce(rpkg_t *rpkg, alpm_list_t **solution)
 				break;
 			}
 		}
+	}
+	if(rpkg->pkg->origin != ALPM_PKG_FROM_LOCALDB) {
+		alpm_list_append(solution, rpkg->pkg);
 	}
 }
 
@@ -226,8 +226,6 @@ static int _alpm_resolver_solve_conflicts(struct _alpm_dep_graph *graph, alpm_li
 	}
 
 	conflict = conflicts->data;
-
-	debug("resolving conflict %s %s\n", conflict->rpkg1->pkg->name, conflict->rpkg2->pkg->name);
 
 	/* check if conflict has already been resolved */
 	if(conflict->rpkg1->disabled || conflict->rpkg2->disabled) {
