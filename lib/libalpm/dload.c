@@ -247,12 +247,22 @@ static void curl_set_handle_opts(struct dload_payload *payload,
 {
 	alpm_handle_t *handle = payload->handle;
 	const char *useragent = getenv("HTTP_USER_AGENT");
+	char *escaped_url;
 	struct stat st;
 
 	/* the curl_easy handle is initialized with the alpm handle, so we only need
 	 * to reset the handle's parameters for each time it's used. */
 	curl_easy_reset(curl);
-	curl_easy_setopt(curl, CURLOPT_URL, payload->fileurl);
+
+	if((escaped_url = curl_easy_escape(curl, payload->fileurl))) {
+		curl_easy_setopt(curl, CURLOPT_URL, escaped_url);
+		_alpm_log(handle, ALPM_LOG_DEBUG, "url: %s\n", escaped_url);
+		curl_free(escaped_url);
+	} else {
+		curl_easy_setopt(curl, CURLOPT_URL, payload->fileurl);
+		_alpm_log(handle, ALPM_LOG_DEBUG, "url: %s\n", payload->fileurl);
+	}
+
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error_buffer);
 	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
 	curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L);
@@ -272,8 +282,6 @@ static void curl_set_handle_opts(struct dload_payload *payload,
 	curl_easy_setopt(curl, CURLOPT_TCP_KEEPIDLE, 60L);
 	curl_easy_setopt(curl, CURLOPT_TCP_KEEPINTVL, 60L);
 	curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-
-	_alpm_log(handle, ALPM_LOG_DEBUG, "url: %s\n", payload->fileurl);
 
 	if(payload->max_size) {
 		_alpm_log(handle, ALPM_LOG_DEBUG, "maxsize: %jd\n",
