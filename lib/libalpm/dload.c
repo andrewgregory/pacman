@@ -18,6 +18,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <curl/curl.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
@@ -36,10 +37,6 @@
 #include <netinet/tcp.h> /* TCP_KEEPINTVL, TCP_KEEPIDLE */
 #endif
 
-#ifdef HAVE_LIBCURL
-#include <curl/curl.h>
-#endif
-
 /* libalpm */
 #include "dload.h"
 #include "alpm_list.h"
@@ -48,7 +45,6 @@
 #include "util.h"
 #include "handle.h"
 
-#ifdef HAVE_LIBCURL
 static const char *get_filename(const char *url)
 {
 	char *filename = strrchr(url, '/');
@@ -594,7 +590,6 @@ cleanup:
 
 	return ret;
 }
-#endif
 
 /** Download a file given by a URL to a local directory.
  * Does not overwrite an existing file if the download fails.
@@ -609,14 +604,7 @@ int _alpm_download(struct dload_payload *payload, const char *localpath,
 	alpm_handle_t *handle = payload->handle;
 
 	if(handle->fetchcb == NULL) {
-#ifdef HAVE_LIBCURL
 		return curl_download_internal(payload, localpath, final_file, final_url);
-#else
-		/* work around unused warnings when building without libcurl */
-		(void)final_file;
-		(void)final_url;
-		RET_ERR(handle, ALPM_ERR_EXTERNAL_DOWNLOAD, -1);
-#endif
 	} else {
 		int ret = handle->fetchcb(payload->fileurl, localpath, payload->force);
 		if(ret == -1 && !payload->errors_ok) {

@@ -351,9 +351,6 @@ foreach testobj : pacman_tests
     '--verbose',
     join_paths(meson.current_source_dir(), input)
   ]
-  if not conf.get('HAVE_LIBCURL')
-    args += '--without-curl'
-  endif
   if not conf.get('HAVE_LIBGPGME')
     args += '--without-gpg'
   endif

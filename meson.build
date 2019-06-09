@@ -95,7 +95,6 @@ libcurl = dependency('libcurl',
                      version : '>=7.32.0',
                      required : get_option('curl'),
                      static : get_option('buildstatic'))
-conf.set('HAVE_LIBCURL', libcurl.found())
 
 want_gpgme = get_option('gpgme')
 gpgme = dependency('gpgme',
@@ -475,7 +474,6 @@ message('\n    '.join([
   '  i18n support             : @0@'.format(get_option('i18n')),
   '  Build docs               : @0@'.format(build_doc),
   '  debug build              : @0@'.format(get_option('buildtype') == 'debug'),
-  '  Use libcurl              : @0@'.format(conf.get('HAVE_LIBCURL')),
   '  Use GPGME                : @0@'.format(conf.get('HAVE_LIBGPGME')),
   '  Use OpenSSL              : @0@'.format(conf.has('HAVE_LIBSSL') and
                                             conf.get('HAVE_LIBSSL') == 1),

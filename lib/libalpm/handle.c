@@ -64,10 +64,8 @@ void _alpm_handle_free(alpm_handle_t *handle)
 		closelog();
 	}
 
-#ifdef HAVE_LIBCURL
 	/* release curl handle */
 	curl_easy_cleanup(handle->curl);
-#endif
 
 #ifdef HAVE_LIBGPGME
 	FREELIST(handle->known_keys);
@@ -854,10 +852,6 @@ int SYMEXPORT alpm_option_set_disable_dl_timeout(alpm_handle_t *handle,
 		unsigned short disable_dl_timeout)
 {
 	CHECK_HANDLE(handle, return -1);
-#ifdef HAVE_LIBCURL
 	handle->disable_dl_timeout = disable_dl_timeout;
-#else
-	(void)disable_dl_timeout; /* silence unused variable warnings */
-#endif
 	return 0;
 }

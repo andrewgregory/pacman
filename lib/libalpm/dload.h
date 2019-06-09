@@ -42,9 +42,7 @@ struct dload_payload {
 	int unlink_on_fail;
 	int trust_remote_name;
 	int cb_initialized;
-#ifdef HAVE_LIBCURL
 	CURLcode curlerr;       /* last error produced by curl */
-#endif
 };
 
 void _alpm_dload_payload_reset(struct dload_payload *payload);

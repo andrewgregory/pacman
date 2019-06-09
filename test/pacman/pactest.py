@@ -80,9 +80,6 @@ def create_parser():
     parser.add_option("--without-gpg", action = "store_true",
                       dest = "missing_gpg", default = False,
                       help = "skip gpg-related tests")
-    parser.add_option("--without-curl", action = "store_true",
-                      dest = "missing_curl", default = False,
-                      help = "skip downloader-related tests")
     parser.add_option("--without-nls", action = "store_true",
                       dest = "missing_nls", default = False,
                       help = "skip translation-related tests")
@@ -148,7 +145,6 @@ if __name__ == "__main__":
     env.pacman["ldconfig"] = opts.ldconfig
     env.config["gpg"] = not opts.missing_gpg
     env.config["nls"] = not opts.missing_nls
-    env.config["curl"] = not opts.missing_curl
 
     try:
         for i in args:

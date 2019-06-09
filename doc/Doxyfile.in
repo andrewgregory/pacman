@@ -257,7 +257,6 @@ PREDEFINED             = HAVE_CONFIG_H= \
                          SYMHIDDEN= \
                          SYMEXPORT= \
                          HAVE_LIBARCHIVE \
-                         HAVE_LIBCURL \
                          HAVE_LIBGPGME
 EXPAND_AS_DEFINED      =
 SKIP_FUNCTION_MACROS   = YES

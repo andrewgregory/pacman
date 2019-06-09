@@ -18,10 +18,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_LIBCURL
-#include <curl/curl.h>
-#endif
-
 /* libalpm */
 #include "util.h"
 #include "alpm.h"

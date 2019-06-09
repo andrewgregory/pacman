@@ -21,9 +21,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_LIBCURL
 #include <curl/curl.h>
-#endif
 
 /* libalpm */
 #include "alpm.h"
@@ -128,9 +126,7 @@ int SYMEXPORT alpm_release(alpm_handle_t *myhandle)
 	_alpm_handle_unlock(myhandle);
 	_alpm_handle_free(myhandle);
 
-#ifdef HAVE_LIBCURL
 	curl_global_cleanup();
-#endif
 
 	return ret;
 }
@@ -155,11 +151,9 @@ const char SYMEXPORT *alpm_version(void)
 int SYMEXPORT alpm_capabilities(void)
 {
 	return 0
+		| ALPM_CAPABILITY_DOWNLOADER
 #ifdef ENABLE_NLS
 		| ALPM_CAPABILITY_NLS
-#endif
-#ifdef HAVE_LIBCURL
-		| ALPM_CAPABILITY_DOWNLOADER
 #endif
 #ifdef HAVE_LIBGPGME
 		| ALPM_CAPABILITY_SIGNATURES

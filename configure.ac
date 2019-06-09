@@ -131,11 +131,6 @@ AC_ARG_WITH(gpgme,
 	AS_HELP_STRING([--with-gpgme], [use GPGME for PGP signature verification]),
 	[], [with_gpgme=check])
 
-# Help line for using libcurl
-AC_ARG_WITH(libcurl,
-	AS_HELP_STRING([--with-libcurl], [use libcurl for the internal downloader]),
-	[], [with_libcurl=check])
-
 # Help line for documentation
 AC_ARG_ENABLE(doc,
 	AS_HELP_STRING([--disable-doc], [prevent make from looking at doc/ dir]),
@@ -247,19 +242,8 @@ AM_CONDITIONAL(HAVE_LIBSSL, [test "$have_openssl" = "yes"])
 AM_CONDITIONAL(HAVE_LIBNETTLE, [test "$have_nettle" = "yes"])
 
 # Check for libcurl
-have_libcurl=no
-if test "x$with_libcurl" != "xno"; then
-	PKG_CHECK_MODULES(LIBCURL, [libcurl >= 7.32.0],
-		[AC_DEFINE(HAVE_LIBCURL, 1, [Define if libcurl is available]) have_libcurl=yes], have_libcurl=no)
-	if test "x$have_libcurl" = xno -a "x$with_libcurl" = xyes; then
-		AC_MSG_ERROR([*** libcurl >= 7.32.0 is required for internal downloader support])
-	fi
-fi
-AM_CONDITIONAL(HAVE_LIBCURL, [test "$have_libcurl" = "yes"])
-# used to generate libalpm.pc
-if test "x$have_libcurl" = xyes; then
-	AC_SUBST(pc_libcurl, [libcurl])
-fi
+PKG_CHECK_MODULES(LIBCURL, [libcurl >= 7.32.0], ,
+	AC_MSG_ERROR([*** libcurl >= 7.32.0 is needed to compile pacman!]))
 
 # Check for gpgme
 AC_MSG_CHECKING(whether to link with libgpgme)
@@ -573,7 +557,6 @@ ${PACKAGE_NAME}:
     template directory     : ${TEMPLATE_DIR}
 
   Compilation options:
-    Use libcurl            : ${have_libcurl}
     Use GPGME              : ${have_gpgme}
     Use OpenSSL            : ${have_openssl}
     Use nettle             : ${have_nettle}

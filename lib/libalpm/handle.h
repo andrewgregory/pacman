@@ -20,16 +20,13 @@
 #ifndef ALPM_HANDLE_H
 #define ALPM_HANDLE_H
 
+#include <curl/curl.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <regex.h>
 
 #include "alpm_list.h"
 #include "alpm.h"
-
-#ifdef HAVE_LIBCURL
-#include <curl/curl.h>
-#endif
 
 #define EVENT(h, e) \
 do { \
@@ -57,11 +54,9 @@ struct __alpm_handle_t {
 	FILE *logstream;        /* log file stream pointer */
 	alpm_trans_t *trans;
 
-#ifdef HAVE_LIBCURL
 	/* libcurl handle */
 	CURL *curl;             /* reusable curl_easy handle */
 	unsigned short disable_dl_timeout;
-#endif
 
 #ifdef HAVE_LIBGPGME
 	alpm_list_t *known_keys;  /* keys verified to be in our keychain */
