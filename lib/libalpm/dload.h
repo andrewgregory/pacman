@@ -23,6 +23,15 @@
 #include "alpm_list.h"
 #include "alpm.h"
 
+struct dload_payload_options {
+	int force;
+	int allow_resume;
+	int errors_ok;
+	int unlink_on_fail;
+	int trust_remote_name;
+	off_t max_size;
+};
+
 struct dload_payload {
 	alpm_handle_t *handle;
 	const char *tempfile_openmode;
@@ -34,14 +43,9 @@ struct dload_payload {
 	alpm_list_t *servers;
 	long respcode;
 	off_t initial_size;
-	off_t max_size;
 	off_t prevprogress;
-	int force;
-	int allow_resume;
-	int errors_ok;
-	int unlink_on_fail;
-	int trust_remote_name;
 	int cb_initialized;
+    struct dload_payload_options;
 	CURLcode curlerr;       /* last error produced by curl */
 };
 

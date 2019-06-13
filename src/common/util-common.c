@@ -162,6 +162,45 @@ size_t strtrim(char *str)
 	return end - pch;
 }
 
+static int is_url_unreserved(const char c)
+{
+	return (c >= 'A' && c <= 'Z')
+		|| (c >= 'a' && c <= 'z')
+		|| (c >= '0' && c <= '9')
+		|| c == '-'
+		|| c == '_'
+		|| c == '.'
+		|| c == '~';
+}
+
+char *url_escape(const char *fragment)
+{
+	size_t len = 0;
+	const char *c, *hexfmt = "%%%x";
+	char *e, *escaped;
+
+	for(c = fragment; *c; c++) {
+		len += is_url_unreserved(*c) ? 1 : snprintf(NULL, 0, hexfmt, *c);
+	}
+
+	if((escaped = calloc(len + 1, sizeof(char))) == NULL) {
+		return NULL;
+	}
+
+	e = escaped;
+	for(c = fragment; *c; c++) {
+		if(is_url_unreserved(*c)) {
+			*e = *c;
+			e++;
+		} else {
+			sprintf(e, hexfmt, *c);
+            e += 3;
+		}
+	}
+
+	return escaped;
+}
+
 #ifndef HAVE_STRNLEN
 /* A quick and dirty implementation derived from glibc */
 /** Determines the length of a fixed-size string.

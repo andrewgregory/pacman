@@ -247,21 +247,13 @@ static void curl_set_handle_opts(struct dload_payload *payload,
 {
 	alpm_handle_t *handle = payload->handle;
 	const char *useragent = getenv("HTTP_USER_AGENT");
-	char *escaped_url;
 	struct stat st;
 
 	/* the curl_easy handle is initialized with the alpm handle, so we only need
 	 * to reset the handle's parameters for each time it's used. */
 	curl_easy_reset(curl);
 
-	if((escaped_url = curl_easy_escape(curl, payload->fileurl))) {
-		curl_easy_setopt(curl, CURLOPT_URL, escaped_url);
-		_alpm_log(handle, ALPM_LOG_DEBUG, "url: %s\n", escaped_url);
-		curl_free(escaped_url);
-	} else {
-		curl_easy_setopt(curl, CURLOPT_URL, payload->fileurl);
-		_alpm_log(handle, ALPM_LOG_DEBUG, "url: %s\n", payload->fileurl);
-	}
+	_alpm_log(handle, ALPM_LOG_DEBUG, "url: %s\n", payload->fileurl);
 
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error_buffer);
 	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
@@ -739,4 +731,100 @@ void _alpm_dload_payload_reset_for_retry(struct dload_payload *payload)
 	payload->prevprogress = 0;
 	payload->unlink_on_fail = 0;
 	payload->cb_initialized = 0;
+}
+
+int _alpm_download_from_servers(
+		alpm_handle_t *handle,
+		alpm_list_t *servers,
+		struct payload_options *options,
+		const char *filename,
+		const char *destination)
+{
+	alpm_list_t *i;
+	char *escaped_name = NULL;
+	size_t enamelen, fnamelen;
+	mode_t oldmask;
+	int downloaded = 0, downloaded_sig = 0;
+	int ret = -1, sig_ret = -1;
+
+	/* make sure we have a sane umask */
+	oldmask = umask(0022);
+
+	if((escaped_name = url_escape(filename)) == NULL) {
+		return -1;
+	}
+	enamelen = strlen(escaped_name);
+	fnamelen = strlen(filename);
+
+	for(i = servers; i; i = i->next) {
+		const char *server = i->data, *final_db_url = NULL;
+		struct dload_payload payload;
+		size_t len;
+
+		sig_ret = -1;
+
+		memset(&payload, 0, sizeof(struct dload_payload));
+
+		/* set hard upper limit of 25MiB */
+		payload.max_size = 25 * 1024 * 1024;
+
+		/* print server + filename into a buffer */
+		len = strlen(server) + enamelen + 6;
+		MALLOC(payload.fileurl, len, continue);
+
+		snprintf(payload.fileurl, len, "%s/%s", server, escaped_name);
+		payload.handle = handle;
+
+		ret = _alpm_download(&payload, destination, NULL, &final_db_url);
+		_alpm_dload_payload_reset(&payload);
+		downloaded = (downloaded || ret == 0);
+
+		if(ret != -1) {
+			/* an existing sig file is no good at this point */
+			char *sigpath = asprintf("%s%s%s", destination, filename, ".sig");
+			if(!sigpath) {
+				continue;
+			}
+			unlink(sigpath);
+			free(sigpath);
+
+			/* check if the final URL from internal downloader looks reasonable */
+			if(final_db_url != NULL) {
+				size_t ulen = strlen(final_db_url);
+				if(strcmp(final_db_url + ulen - enamelen, escaped_name) != 0
+						&& strcmp(final_db_url + ulen - fnamelen, filename) != 0) {
+					final_db_url = NULL;
+				}
+			}
+
+			/* if we downloaded the file, we want the .sig from the same server */
+			if(final_db_url != NULL) {
+				/* print final_db_url into a buffer (leave space for .sig) */
+				len = strlen(final_db_url) + 5;
+				MALLOC(payload.fileurl, len, continue);
+				snprintf(payload.fileurl, len, "%s.sig", final_db_url);
+			} else {
+				/* print server + filename into a buffer (leave space for separator and .sig) */
+				len = strlen(server) + enamelen + 6;
+				MALLOC(payload.fileurl, len, continue);
+				snprintf(payload.fileurl, len, "%s/%s.sig", server, filename);
+			}
+
+			payload.handle = handle;
+
+			sig_ret = _alpm_download(&payload, destination, NULL, NULL);
+			/* errors_ok suppresses error messages, but not the return code */
+			sig_ret = payload.errors_ok ? 0 : sig_ret;
+			_alpm_dload_payload_reset(&payload);
+		}
+
+		if(ret != -1 && sig_ret != -1) {
+			break;
+		}
+	}
+
+cleanup:
+	free(escaped_name);
+	umask(oldmask);
+	return 1;
 }

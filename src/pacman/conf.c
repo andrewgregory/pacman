@@ -18,6 +18,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <curl/curl.h>
 #include <errno.h>
 #include <limits.h>
 #include <locale.h> /* setlocale */
@@ -591,28 +592,71 @@ static int _parse_options(const char *key, char *value,
 	return 0;
 }
 
-static char *replace_server_vars(config_t *c, config_repo_t *r, const char *s)
+static int replace_server_vars(config_t *c)
 {
-	if(c->arch == NULL && strstr(s, "$arch")) {
-		pm_printf(ALPM_LOG_ERROR,
-				_("mirror '%s' contains the '%s' variable, but no '%s' is defined.\n"),
-				s, "$arch", "Architecture");
-		return NULL;
+	alpm_list_t *i;
+	char *arch = c->arch ? url_escape(c->arch) : NULL;
+
+	if(arch == NULL) {
+		goto memerr;
 	}
 
-	if(c->arch) {
-		char *temp, *replaced;
+	for(i = c->repos; i; i = i->next) {
+		alpm_list_t *j;
+		config_repo_t *r = i->data;
+		char *rname = url_escape(r->name);
 
-		replaced = strreplace(s, "$arch", c->arch);
+		if(rname == NULL) {
+			goto memerr;
+		}
 
-		temp = replaced;
-		replaced = strreplace(temp, "$repo", r->name);
-		free(temp);
+		for(j = r->servers; j; j = j->next) {
+			char *url = j->data;
+			int has_arch = strstr(url, "$arch") != NULL;
 
-		return replaced;
-	} else {
-		return strreplace(s, "$repo", r->name);
+			if(c->arch == NULL && has_arch) {
+				pm_printf(ALPM_LOG_ERROR,
+						_("mirror '%s' contains the '%s' variable, but no '%s' is defined.\n"),
+						url, "$arch", "Architecture");
+				return -1;
+			} else if(has_arch) {
+				char *newurl = strreplace(url, "$arch", c->arch);
+
+				if(newurl == NULL) {
+					free(rname);
+					goto memerr;
+				}
+
+				free(url);
+				url = newurl;
+			}
+
+			if(strstr(url, "$repo") != NULL) {
+				char *newurl = strreplace(url, "$arch", c->arch);
+
+				if(newurl == NULL) {
+					free(rname);
+					goto memerr;
+				}
+
+				free(url);
+				url = newurl;
+			}
+
+			j->data = url;
+		}
+
+		free(rname);
 	}
+
+	free(arch);
+	return 0;
+
+memerr:
+	pm_printf(ALPM_LOG_ERROR,
+			_("could not expand Server url variables: %s\n"), strerror(errno));
+	free(arch);
+	return -1;
 }
 
 static int _add_mirror(alpm_db_t *db, char *value)
@@ -1003,15 +1047,9 @@ int setdefaults(config_t *c)
 		alpm_list_t *j;
 		SETDEFAULT(r->usage, ALPM_DB_USAGE_ALL);
 		r->siglevel = merge_siglevel(c->siglevel, r->siglevel, r->siglevel_mask);
-		for(j = r->servers; j; j = j->next) {
-			char *newurl = replace_server_vars(c, r, j->data);
-			if(newurl == NULL) {
-				return -1;
-			} else {
-				free(j->data);
-				j->data = newurl;
-			}
-		}
+	}
+	if(replace_server_vars(c) == -1) {
+		return -1;
 	}
 
 #undef SETDEFAULT

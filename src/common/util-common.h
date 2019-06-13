@@ -32,6 +32,8 @@ char *safe_fgets(char *s, int size, FILE *stream);
 
 size_t strtrim(char *str);
 
+char *url_escape(const char *fragment);
+
 #ifndef HAVE_STRNDUP
 char *strndup(const char *s, size_t n);
 #endif
