@@ -496,6 +496,8 @@ static int _parse_options(const char *key, char *value,
 			}
 		} else if(strcmp(key, "DisableDownloadTimeout") == 0) {
 			config->disable_dl_timeout = 1;
+		} else if(strcmp(key, "AutoUpgrade") == 0) {
+			config->auto_upgrade = 1;
 		} else {
 			pm_printf(ALPM_LOG_WARNING,
 					_("config file %s, line %d: directive '%s' in section '%s' not recognized.\n"),

@@ -703,7 +703,7 @@ static int sync_trans(alpm_list_t *targets)
 		return retval;
 	}
 
-	if(config->op_s_upgrade) {
+	if(config->op_s_upgrade || config->auto_upgrade) {
 		if(!config->print) {
 			colon_printf(_("Starting full system upgrade...\n"));
 			alpm_logaction(config->handle, PACMAN_CALLER_PREFIX,

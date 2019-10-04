@@ -205,6 +205,8 @@ Options
 	Disable defaults for low speed limit and timeout on downloads. Use this
 	if you have issues downloading files with proxy and/or security gateway.
 
+*AutoUpgrade*::
+	Automatically run a full system upgrade when syncing packages.
 
 Repository Sections
 -------------------
