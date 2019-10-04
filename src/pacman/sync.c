@@ -680,10 +680,25 @@ cleanup:
 	return ret;
 }
 
+static int refresh_sync_databases(int force)
+{
+	colon_printf(_("Synchronizing package databases...\n"));
+	alpm_logaction(config->handle, PACMAN_CALLER_PREFIX,
+			"synchronizing package lists\n");
+	if(!sync_syncdbs(force, sync_dbs)) {
+		return 1;
+	}
+}
+
 static int sync_trans(alpm_list_t *targets)
 {
 	int retval = 0;
 	alpm_list_t *i;
+
+	if((config->auto_refresh && !config->op_s_sync)
+			&& refresh_sync_databases(0) != 0) {
+		return 1;
+	}
 
 	/* Step 1: create a new transaction... */
 	if(trans_init(config->flags, 1) == -1) {
@@ -898,14 +913,9 @@ int pacman_sync(alpm_list_t *targets)
 
 	sync_dbs = alpm_get_syncdbs(config->handle);
 
-	if(config->op_s_sync) {
-		/* grab a fresh package list */
-		colon_printf(_("Synchronizing package databases...\n"));
-		alpm_logaction(config->handle, PACMAN_CALLER_PREFIX,
-				"synchronizing package lists\n");
-		if(!sync_syncdbs(config->op_s_sync, sync_dbs)) {
-			return 1;
-		}
+	if(config->op_s_sync
+			&& refresh_sync_databases(config->op_s_sync > 1) != 0) {
+		return 1;
 	}
 
 	if(check_syncdbs(1, 1)) {

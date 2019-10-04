@@ -57,6 +57,7 @@ typedef struct __config_t {
 	unsigned short color;
 	unsigned short disable_dl_timeout;
 	unsigned short auto_upgrade;
+	unsigned short auto_refresh;
 	char *arch;
 	char *print_format;
 	/* unfortunately, we have to keep track of paths both here and in the library

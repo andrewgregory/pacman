@@ -208,6 +208,11 @@ Options
 *AutoUpgrade*::
 	Automatically run a full system upgrade when syncing packages.
 
+*AutoRefresh*::
+	Automatically refresh sync databases when syncing packages or running
+	a system upgrade.
+
+
 Repository Sections
 -------------------
 Each repository section defines a section name and at least one location where
