@@ -1039,6 +1039,54 @@ static int str_is_glob_pattern(const char *string)
 	return 0;
 }
 
+static char *escape_glob_pattern(const char *string)
+{
+	size_t len, pattern_chars;
+	const char *c;
+	char *escaped, *e;
+
+	if(string == NULL) {
+		return NULL;
+	}
+
+	len = strlen(string);
+	pattern_chars = 0;
+	for(c = string; *c; c++) {
+		switch(*c) {
+			case '\\':
+			case '*':
+			case '?':
+			case '[':
+				pattern_chars++;
+		}
+	}
+
+	if(pattern_chars == 0) {
+		return strdup(string);
+	}
+
+	if(SIZE_MAX - len < pattern_chars || !(escaped = malloc(len + pattern_chars))) {
+		return NULL;
+	}
+
+	for(c = string, e = escaped; *c; c++, e++) {
+		switch(*c) {
+			case '\\':
+			case '*':
+			case '?':
+			case '[':
+				*e = '\\';
+				e++;
+				/* fall through */
+			default:
+				*e = *c;
+		}
+	}
+	*e = '\0';
+
+	return escaped;
+}
+
 static int _parse_directive(const char *file, int linenum, const char *name,
 		char *key, char *value, void *data);
 
@@ -1047,6 +1095,7 @@ static int process_include(const char *value, void *data,
 {
 	glob_t globbuf;
 	int globret, ret = 0;
+	char *include = NULL;
 	size_t gindex;
 	struct section_t *section = data;
 	static const int config_max_recursion = 10;
@@ -1065,6 +1114,27 @@ static int process_include(const char *value, void *data,
 	}
 
 	section->depth++;
+
+	if(value[0] == '/') {
+		if(!(include = strdup(value))) {
+			pm_printf(ALPM_LOG_ERROR,
+					_("config file %s, line %d: include globbing out of space\n"),
+					file, linenum);
+			return 1;
+		}
+	} else {
+		/* expand relative paths/globs from the config directory */
+		char *base_dir = mdirname(file);
+		char *base_escaped = escape_glob_pattern(base_dir);
+		if(!base_escaped || pm_asprintf(&include, "%s/%s", base_escaped, value) == -1) {
+			pm_printf(ALPM_LOG_ERROR,
+					_("config file %s, line %d: include globbing out of space\n"),
+					file, linenum);
+			free(base_dir);
+			free(base_escaped);
+			return 1;
+		}
+	}
 
 	globret = glob(include, GLOB_ERR, NULL, &globbuf);
 	switch(globret) {
@@ -1106,6 +1176,7 @@ static int process_include(const char *value, void *data,
 
 cleanup:
 	section->depth--;
+	free(include);
 	globfree(&globbuf);
 	return ret;
 }
