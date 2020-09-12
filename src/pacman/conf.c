@@ -1019,6 +1019,26 @@ static int _parse_repo(const char *key, char *value, const char *file,
 	return ret;
 }
 
+static int str_is_glob_pattern(const char *string)
+{
+	const char *c;
+	for(c = string; *c; c++) {
+		switch(*c) {
+			case '\\':
+				/* skip the next character if there is one */
+				if( *(c + 1) ) {
+					c++;
+				}
+				break;
+			case '*':
+			case '?':
+			case '[':
+				return 1;
+		}
+	}
+	return 0;
+}
+
 static int _parse_directive(const char *file, int linenum, const char *name,
 		char *key, char *value, void *data);
 
@@ -1046,23 +1066,31 @@ static int process_include(const char *value, void *data,
 
 	section->depth++;
 
-	/* Ignore include failures... assume non-critical */
-	globret = glob(value, GLOB_NOCHECK, NULL, &globbuf);
+	globret = glob(include, GLOB_ERR, NULL, &globbuf);
 	switch(globret) {
 		case GLOB_NOSPACE:
-			pm_printf(ALPM_LOG_DEBUG,
-					"config file %s, line %d: include globbing out of space\n",
+			pm_printf(ALPM_LOG_ERROR,
+					_("config file %s, line %d: include globbing out of space\n"),
 					file, linenum);
+			ret = 1;
 			break;
 		case GLOB_ABORTED:
-			pm_printf(ALPM_LOG_DEBUG,
-					"config file %s, line %d: include globbing read error for %s\n",
+			pm_printf(ALPM_LOG_ERROR,
+					_("config file %s, line %d: include globbing read error for %s\n"),
 					file, linenum, value);
+			ret = 1;
 			break;
 		case GLOB_NOMATCH:
-			pm_printf(ALPM_LOG_DEBUG,
-					"config file %s, line %d: no include found for %s\n",
-					file, linenum, value);
+			if(str_is_glob_pattern(value)) {
+				pm_printf(ALPM_LOG_DEBUG,
+						"config file %s, line %d: no include found for %s\n",
+						file, linenum, value);
+			} else {
+				pm_printf(ALPM_LOG_ERROR,
+						_("config file %s, line %d: no include found for %s\n"),
+						file, linenum, value);
+				ret = 1;
+			}
 			break;
 		default:
 			for(gindex = 0; gindex < globbuf.gl_pathc; gindex++) {
