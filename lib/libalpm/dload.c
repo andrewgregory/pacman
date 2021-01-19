@@ -365,6 +365,8 @@ static int curl_retry_next_server(CURLM *curlm, CURL *curl, struct dload_payload
 			RET_ERR(handle, ALPM_ERR_SYSTEM, -1);
 		}
 		fseek(payload->localf, 0, SEEK_SET);
+	} else {
+		curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE, (curl_off_t)payload->prevprogress);
 	}
 
 	/* Set curl with the new URL */
@@ -455,6 +457,7 @@ static int curl_check_finished_download(CURLM *curlm, CURLMsg *msg,
 			}
 		default:
 			/* delete zero length downloads */
+			fflush(payload->localf);
 			if(fstat(fileno(payload->localf), &st) == 0 && st.st_size == 0) {
 				payload->unlink_on_fail = 1;
 			}
