@@ -91,6 +91,11 @@ static int dload_progress_cb(void *file, curl_off_t dltotal, curl_off_t dlnow,
 	off_t current_size, total_size;
 	alpm_download_event_progress_t cb_data = {0};
 
+	if(dlnow > 500000) {
+		payload->prevprogress = payload->initial_size + dlnow;
+		return -1;
+	}
+
 	/* do not print signature files progress bar */
 	if(payload->signature) {
 		return 0;
@@ -442,8 +447,12 @@ static int curl_check_finished_download(CURLM *curlm, CURLMsg *msg,
 				_alpm_log(handle, ALPM_LOG_ERROR,
 						_("failed retrieving file '%s' from %s : expected download size exceeded\n"),
 						payload->remote_name, hostname);
+				goto cleanup;
+			} else if(curl_retry_next_server(curlm, curl, payload) == 0) {
+				return 2;
+			} else {
+				goto cleanup;
 			}
-			goto cleanup;
 		case CURLE_COULDNT_RESOLVE_HOST:
 			payload->unlink_on_fail = 1;
 			handle->pm_errno = ALPM_ERR_SERVER_BAD_URL;
