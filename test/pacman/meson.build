@@ -178,6 +178,8 @@ pacman_tests = [
   'tests/sync-nodepversion04.py',
   'tests/sync-nodepversion05.py',
   'tests/sync-nodepversion06.py',
+  'tests/sync-server-failover-resume.py',
+  'tests/sync-server-failover.py',
   'tests/sync-sysupgrade-print-replaced-packages.py',
   'tests/sync-update-assumeinstalled.py',
   'tests/sync-update-package-removing-required-provides.py',
