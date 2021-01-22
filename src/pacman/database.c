@@ -47,8 +47,8 @@ static int change_install_reason(alpm_list_t *targets)
 	alpm_pkgreason_t reason;
 
 	if(targets == NULL) {
-		pm_printf(ALPM_LOG_ERROR, _("no targets specified (use -h for help)\n"));
-		return 1;
+		pm_printf(ALPM_LOG_WARNING, _("no targets specified (use -h for help)\n"));
+		return 0;
 	}
 
 	if(config->flags & ALPM_TRANS_FLAG_ALLDEPS) { /* --asdeps */

@@ -435,8 +435,8 @@ int pacman_query(alpm_list_t *targets)
 	 * invalid: isfile, owns */
 	if(targets == NULL) {
 		if(config->op_q_isfile || config->op_q_owns) {
-			pm_printf(ALPM_LOG_ERROR, _("no targets specified (use -h for help)\n"));
-			return 1;
+			pm_printf(ALPM_LOG_WARNING, _("no targets specified (use -h for help)\n"));
+			return 0;
 		}
 
 		for(i = alpm_db_get_pkgcache(db_local); i; i = alpm_list_next(i)) {
