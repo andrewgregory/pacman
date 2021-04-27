@@ -879,7 +879,6 @@ int _alpm_download(alpm_handle_t *handle,
 			if(payload->fileurl) {
 				if (handle->fetchcb(payload->fileurl, localpath, payload->force) != -1) {
 					success = 1;
-					break;
 				}
 			} else {
 				for(s = payload->servers; s; s = s->next) {

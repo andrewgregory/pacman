@@ -333,6 +333,7 @@ pacman_tests = [
   'tests/upgrade-download-404.py',
   'tests/upgrade-download-pkg-and-sig-with-filename.py',
   'tests/upgrade-download-pkg-and-sig-without-filename.py',
+  'tests/upgrade-download-with-xfercommand.py',
 ]
 
 xfail_tests = {
