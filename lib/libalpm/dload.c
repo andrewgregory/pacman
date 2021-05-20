@@ -403,6 +403,17 @@ static FILE *create_tempfile(struct dload_payload *payload, const char *localpat
 	return fp;
 }
 
+/* truncates tempfile without deleting it */
+static int clear_tempfile(struct dload_payload *payload) {
+	fflush(payload->localf);
+	if(ftruncate(fileno(payload->localf), 0)) {
+		return -1;
+	}
+	fseek(payload->localf, 0, SEEK_SET);
+	return 0;
+}
+
+
 /* Return 0 if retry was successful, -1 otherwise */
 static int curl_retry_next_server(CURLM *curlm, CURL *curl, struct dload_payload *payload)
 {
@@ -428,11 +439,9 @@ static int curl_retry_next_server(CURLM *curlm, CURL *curl, struct dload_payload
 	MALLOC(payload->fileurl, len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
 	snprintf(payload->fileurl, len, "%s/%s", server, payload->filepath);
 
-
-	fflush(payload->localf);
-
 	if(payload->allow_resume && stat(payload->tempfile_name, &st) == 0) {
 		/* a previous partial download exists, resume from end of file. */
+		fflush(payload->localf);
 		payload->tempfile_openmode = "ab";
 		curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE, (curl_off_t)st.st_size);
 		_alpm_log(handle, ALPM_LOG_DEBUG,
@@ -441,10 +450,9 @@ static int curl_retry_next_server(CURLM *curlm, CURL *curl, struct dload_payload
 		payload->initial_size = st.st_size;
 	} else {
 		/* we keep the file for a new retry but remove its data if any */
-		if(ftruncate(fileno(payload->localf), 0)) {
+		if(clear_tempfile(payload)) {
 			RET_ERR(handle, ALPM_ERR_SYSTEM, -1);
 		}
-		fseek(payload->localf, 0, SEEK_SET);
 	}
 
 	if(handle->dlcb && !payload->signature) {
@@ -500,6 +508,11 @@ static int curl_check_finished_download(CURLM *curlm, CURLMsg *msg,
 			_alpm_log(handle, ALPM_LOG_DEBUG, "%s: response code %ld\n",
 					payload->remote_name, payload->respcode);
 			if(payload->respcode >= 400) {
+				/* make sure 404 pages and similar don't end up in the file */
+				if(clear_tempfile(payload)) {
+					RET_ERR(handle, ALPM_ERR_SYSTEM, -1);
+				}
+
 				if(!payload->errors_ok) {
 					handle->pm_errno = ALPM_ERR_RETRIEVE;
 					/* non-translated message is same as libcurl */
