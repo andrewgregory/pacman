@@ -73,8 +73,8 @@ int pacman_upgrade(alpm_list_t *targets)
 	alpm_list_t *i;
 
 	if(targets == NULL) {
-		pm_printf(ALPM_LOG_ERROR, _("no targets specified (use -h for help)\n"));
-		return 1;
+		pm_printf(ALPM_LOG_WARNING, _("no targets specified (use -h for help)\n"));
+		return 0;
 	}
 
 	/* carve out remote targets and move it into a separate list */

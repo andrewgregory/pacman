@@ -712,8 +712,8 @@ esac
 # check for targets where needed
 if (( (ADD || DELETE || EDIT || IMPORT || IMPORT_TRUSTDB ||
 		LSIGNKEY || RECEIVE || VERIFY) && $# == 0 )); then
-	error "$(gettext "No targets specified")"
-	exit 1
+	warning "$(gettext "No targets specified")"
+	exit 0
 fi
 
 (( ! INIT )) && check_keyring

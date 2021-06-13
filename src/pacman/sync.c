@@ -950,8 +950,8 @@ int pacman_sync(alpm_list_t *targets)
 		} else {
 			/* don't proceed here unless we have an operation that doesn't require a
 			 * target list */
-			pm_printf(ALPM_LOG_ERROR, _("no targets specified (use -h for help)\n"));
-			return 1;
+			pm_printf(ALPM_LOG_WARNING, _("no targets specified (use -h for help)\n"));
+			return 0;
 		}
 	}
 

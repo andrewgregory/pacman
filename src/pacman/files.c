@@ -332,8 +332,8 @@ int pacman_files(alpm_list_t *targets)
 	}
 
 	if(targets == NULL && !config->op_s_sync) {
-		pm_printf(ALPM_LOG_ERROR, _("no targets specified (use -h for help)\n"));
-		return 1;
+		pm_printf(ALPM_LOG_WARNING, _("no targets specified (use -h for help)\n"));
+		return 0;
 	}
 
 	/* search for a file */
