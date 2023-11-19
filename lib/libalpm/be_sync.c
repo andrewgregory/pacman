@@ -183,6 +183,7 @@ int SYMEXPORT alpm_db_update(alpm_handle_t *handle, alpm_list_t *dbs, int force)
 		siglevel = alpm_db_get_siglevel(db);
 
 		CALLOC(payload, 1, sizeof(*payload), GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
+		payload->cache_servers = db->cache_servers;
 		payload->servers = db->servers;
 		/* print server + filename into a buffer */
 		len = strlen(db->treename) + strlen(dbext) + 1;

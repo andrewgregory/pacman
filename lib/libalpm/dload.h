@@ -37,6 +37,7 @@ struct dload_payload {
 	 */
 	char *fileurl;
 	char *filepath; /* download URL path */
+	alpm_list_t *cache_servers;
 	alpm_list_t *servers;
 	long respcode;
 	off_t initial_size;
