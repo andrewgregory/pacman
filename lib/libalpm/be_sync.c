@@ -173,7 +173,7 @@ int SYMEXPORT alpm_db_update(alpm_handle_t *handle, alpm_list_t *dbs, int force)
 		}
 
 		ASSERT(db != handle->db_local, GOTO_ERR(handle, ALPM_ERR_WRONG_ARGS, cleanup));
-		ASSERT(db->servers != NULL, GOTO_ERR(handle, ALPM_ERR_SERVER_NONE, cleanup));
+		ASSERT(db->db_servers || db->servers, GOTO_ERR(handle, ALPM_ERR_SERVER_NONE, cleanup));
 
 		/* force update of invalid databases to fix potential mismatched database/signature */
 		if(db->status & DB_STATUS_INVALID) {
@@ -183,7 +183,7 @@ int SYMEXPORT alpm_db_update(alpm_handle_t *handle, alpm_list_t *dbs, int force)
 		siglevel = alpm_db_get_siglevel(db);
 
 		CALLOC(payload, 1, sizeof(*payload), GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
-		payload->servers = db->servers;
+		payload->servers = db->db_servers ? db->db_servers : db->servers;
 		/* print server + filename into a buffer */
 		len = strlen(db->treename) + strlen(dbext) + 1;
 		MALLOC(payload->filepath, len,
